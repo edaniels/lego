@@ -61,6 +61,11 @@ type ObtainRequest struct {
 	MustStaple                     bool
 	PreferredChain                 string
 	AlwaysDeactivateAuthorizations bool
+
+	// notAfter (optional, string):
+	// The requested value of the notAfter field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotAfter string
 }
 
 // ObtainForCSRRequest The request to obtain a certificate matching the CSR passed into it.
@@ -74,6 +79,11 @@ type ObtainForCSRRequest struct {
 	Bundle                         bool
 	PreferredChain                 string
 	AlwaysDeactivateAuthorizations bool
+
+	// notAfter (optional, string):
+	// The requested value of the notAfter field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotAfter string
 }
 
 type resolver interface {
@@ -118,7 +128,10 @@ func (c *Certifier) Obtain(ctx context.Context, request ObtainRequest) (*Resourc
 		c.core.Logger.Infof("[%s] acme: Obtaining SAN certificate", strings.Join(domains, ", "))
 	}
 
-	order, err := c.core.Orders.New(ctx, domains)
+	order, err := c.core.Orders.New(ctx, api.NewRequest{
+		Domains:  domains,
+		NotAfter: request.NotAfter,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +196,10 @@ func (c *Certifier) ObtainForCSR(ctx context.Context, request ObtainForCSRReques
 		c.core.Logger.Infof("[%s] acme: Obtaining SAN certificate given a CSR", strings.Join(domains, ", "))
 	}
 
-	order, err := c.core.Orders.New(ctx, domains)
+	order, err := c.core.Orders.New(ctx, api.NewRequest{
+		Domains:  domains,
+		NotAfter: request.NotAfter,
+	})
 	if err != nil {
 		return nil, err
 	}

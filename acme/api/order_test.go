@@ -57,7 +57,7 @@ func TestOrderService_New(t *testing.T) {
 	core, err := New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
-	order, err := core.Orders.New(context.Background(), []string{"example.com"})
+	order, err := core.Orders.New(context.Background(), NewRequest{Domains: []string{"example.com"}})
 	require.NoError(t, err)
 
 	expected := acme.ExtendedOrder{

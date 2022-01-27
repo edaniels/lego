@@ -10,14 +10,24 @@ import (
 
 type OrderService service
 
+type NewRequest struct {
+	Domains []string
+
+	// notAfter (optional, string):
+	// The requested value of the notAfter field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotAfter string
+}
+
 // New Creates a new order.
-func (o *OrderService) New(ctx context.Context, domains []string) (acme.ExtendedOrder, error) {
+func (o *OrderService) New(ctx context.Context, request NewRequest) (acme.ExtendedOrder, error) {
 	var identifiers []acme.Identifier
-	for _, domain := range domains {
+	for _, domain := range request.Domains {
 		identifiers = append(identifiers, acme.Identifier{Type: "dns", Value: domain})
 	}
 
 	orderReq := acme.Order{Identifiers: identifiers}
+	orderReq.NotAfter = request.NotAfter // defaults to CA's choice
 
 	var order acme.Order
 	resp, err := o.core.post(ctx, o.core.GetDirectory().NewOrderURL, orderReq, &order)

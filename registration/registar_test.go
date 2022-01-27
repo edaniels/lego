@@ -1,6 +1,7 @@
 package registration
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"net/http"
@@ -38,12 +39,12 @@ func TestRegistrar_ResolveAccountByKey(t *testing.T) {
 		privatekey: key,
 	}
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
+	core, err := api.New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	registrar := NewRegistrar(core, user)
 
-	res, err := registrar.ResolveAccountByKey()
+	res, err := registrar.ResolveAccountByKey(context.Background())
 	require.NoError(t, err, "Unexpected error resolving account by key")
 
 	assert.Equal(t, "valid", res.Body.Status, "Unexpected account status")

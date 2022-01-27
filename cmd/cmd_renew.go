@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"crypto"
 	"crypto/x509"
 	"time"
@@ -138,7 +139,7 @@ func renewForDomains(ctx *cli.Context, client *lego.Client, certsStorage *Certif
 		PreferredChain:                 ctx.String("preferred-chain"),
 		AlwaysDeactivateAuthorizations: ctx.Bool("always-deactivate-authorizations"),
 	}
-	certRes, err := client.Certificate.Obtain(request)
+	certRes, err := client.Certificate.Obtain(context.TODO(), request)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -178,7 +179,7 @@ func renewForCSR(ctx *cli.Context, client *lego.Client, certsStorage *Certificat
 	timeLeft := cert.NotAfter.Sub(time.Now().UTC())
 	log.Infof("[%s] acme: Trying renewal with %d hours remaining", domain, int(timeLeft.Hours()))
 
-	certRes, err := client.Certificate.ObtainForCSR(certificate.ObtainForCSRRequest{
+	certRes, err := client.Certificate.ObtainForCSR(context.TODO(), certificate.ObtainForCSRRequest{
 		CSR:                            csr,
 		Bundle:                         bundle,
 		PreferredChain:                 ctx.String("preferred-chain"),

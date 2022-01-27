@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"crypto"
 	"crypto/x509"
 	"encoding/json"
@@ -229,12 +230,12 @@ func tryRecoverRegistration(ctx *cli.Context, privateKey crypto.PrivateKey) (*re
 	config.CADirURL = ctx.GlobalString("server")
 	config.UserAgent = fmt.Sprintf("lego-cli/%s", ctx.App.Version)
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.TODO(), config)
 	if err != nil {
 		return nil, err
 	}
 
-	reg, err := client.Registration.ResolveAccountByKey()
+	reg, err := client.Registration.ResolveAccountByKey(context.TODO())
 	if err != nil {
 		return nil, err
 	}

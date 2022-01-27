@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
@@ -97,7 +98,7 @@ func TestValidate(t *testing.T) {
 		}
 	})
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
+	core, err := api.New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -139,7 +140,7 @@ func TestValidate(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			statuses = test.statuses
 
-			err := validate(core, "example.com", acme.Challenge{Type: "http-01", Token: "token", URL: apiURL + "/chlg"})
+			err := validate(context.Background(), core, "example.com", acme.Challenge{Type: "http-01", Token: "token", URL: apiURL + "/chlg"})
 			if test.want == "" {
 				require.NoError(t, err)
 			} else {

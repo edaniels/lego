@@ -2,6 +2,7 @@ package certificate
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/x509"
 	"encoding/base64"
@@ -76,7 +77,7 @@ type ObtainForCSRRequest struct {
 }
 
 type resolver interface {
-	Solve(authorizations []acme.Authorization) error
+	Solve(ctx context.Context, authorizations []acme.Authorization) error
 }
 
 type CertifierOptions struct {
@@ -104,7 +105,7 @@ func NewCertifier(core *api.Core, resolver resolver, options CertifierOptions) *
 //
 // This function will never return a partial certificate.
 // If one domain in the list fails, the whole certificate will fail.
-func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
+func (c *Certifier) Obtain(ctx context.Context, request ObtainRequest) (*Resource, error) {
 	if len(request.Domains) == 0 {
 		return nil, errors.New("no domains to obtain a certificate for")
 	}
@@ -117,29 +118,29 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 		c.core.Logger.Infof("[%s] acme: Obtaining SAN certificate", strings.Join(domains, ", "))
 	}
 
-	order, err := c.core.Orders.New(domains)
+	order, err := c.core.Orders.New(ctx, domains)
 	if err != nil {
 		return nil, err
 	}
 
-	authz, err := c.getAuthorizations(order)
+	authz, err := c.getAuthorizations(ctx, order)
 	if err != nil {
 		// If any challenge fails, return. Do not generate partial SAN certificates.
-		c.deactivateAuthorizations(order, request.AlwaysDeactivateAuthorizations)
+		c.deactivateAuthorizations(ctx, order, request.AlwaysDeactivateAuthorizations)
 		return nil, err
 	}
 
-	err = c.resolver.Solve(authz)
+	err = c.resolver.Solve(ctx, authz)
 	if err != nil {
 		// If any challenge fails, return. Do not generate partial SAN certificates.
-		c.deactivateAuthorizations(order, request.AlwaysDeactivateAuthorizations)
+		c.deactivateAuthorizations(ctx, order, request.AlwaysDeactivateAuthorizations)
 		return nil, err
 	}
 
 	c.core.Logger.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
 
 	failures := make(obtainError)
-	cert, err := c.getForOrder(domains, order, request.Bundle, request.PrivateKey, request.MustStaple, request.PreferredChain)
+	cert, err := c.getForOrder(ctx, domains, order, request.Bundle, request.PrivateKey, request.MustStaple, request.PreferredChain)
 	if err != nil {
 		for _, auth := range authz {
 			failures[challenge.GetTargetedDomain(auth)] = err
@@ -147,7 +148,7 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 	}
 
 	if request.AlwaysDeactivateAuthorizations {
-		c.deactivateAuthorizations(order, true)
+		c.deactivateAuthorizations(ctx, order, true)
 	}
 
 	// Do not return an empty failures map, because
@@ -167,7 +168,7 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 //
 // This function will never return a partial certificate.
 // If one domain in the list fails, the whole certificate will fail.
-func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error) {
+func (c *Certifier) ObtainForCSR(ctx context.Context, request ObtainForCSRRequest) (*Resource, error) {
 	if request.CSR == nil {
 		return nil, errors.New("cannot obtain resource for CSR: CSR is missing")
 	}
@@ -182,29 +183,29 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 		c.core.Logger.Infof("[%s] acme: Obtaining SAN certificate given a CSR", strings.Join(domains, ", "))
 	}
 
-	order, err := c.core.Orders.New(domains)
+	order, err := c.core.Orders.New(ctx, domains)
 	if err != nil {
 		return nil, err
 	}
 
-	authz, err := c.getAuthorizations(order)
+	authz, err := c.getAuthorizations(ctx, order)
 	if err != nil {
 		// If any challenge fails, return. Do not generate partial SAN certificates.
-		c.deactivateAuthorizations(order, request.AlwaysDeactivateAuthorizations)
+		c.deactivateAuthorizations(ctx, order, request.AlwaysDeactivateAuthorizations)
 		return nil, err
 	}
 
-	err = c.resolver.Solve(authz)
+	err = c.resolver.Solve(ctx, authz)
 	if err != nil {
 		// If any challenge fails, return. Do not generate partial SAN certificates.
-		c.deactivateAuthorizations(order, request.AlwaysDeactivateAuthorizations)
+		c.deactivateAuthorizations(ctx, order, request.AlwaysDeactivateAuthorizations)
 		return nil, err
 	}
 
 	c.core.Logger.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
 
 	failures := make(obtainError)
-	cert, err := c.getForCSR(domains, order, request.Bundle, request.CSR.Raw, nil, request.PreferredChain)
+	cert, err := c.getForCSR(ctx, domains, order, request.Bundle, request.CSR.Raw, nil, request.PreferredChain)
 	if err != nil {
 		for _, auth := range authz {
 			failures[challenge.GetTargetedDomain(auth)] = err
@@ -212,7 +213,7 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 	}
 
 	if request.AlwaysDeactivateAuthorizations {
-		c.deactivateAuthorizations(order, true)
+		c.deactivateAuthorizations(ctx, order, true)
 	}
 
 	if cert != nil {
@@ -228,7 +229,7 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 	return cert, nil
 }
 
-func (c *Certifier) getForOrder(domains []string, order acme.ExtendedOrder, bundle bool, privateKey crypto.PrivateKey, mustStaple bool, preferredChain string) (*Resource, error) {
+func (c *Certifier) getForOrder(ctx context.Context, domains []string, order acme.ExtendedOrder, bundle bool, privateKey crypto.PrivateKey, mustStaple bool, preferredChain string) (*Resource, error) {
 	if privateKey == nil {
 		var err error
 		privateKey, err = certcrypto.GeneratePrivateKey(c.options.KeyType)
@@ -259,11 +260,11 @@ func (c *Certifier) getForOrder(domains []string, order acme.ExtendedOrder, bund
 		return nil, err
 	}
 
-	return c.getForCSR(domains, order, bundle, csr, certcrypto.PEMEncode(privateKey), preferredChain)
+	return c.getForCSR(ctx, domains, order, bundle, csr, certcrypto.PEMEncode(privateKey), preferredChain)
 }
 
-func (c *Certifier) getForCSR(domains []string, order acme.ExtendedOrder, bundle bool, csr, privateKeyPem []byte, preferredChain string) (*Resource, error) {
-	respOrder, err := c.core.Orders.UpdateForCSR(order.Finalize, csr)
+func (c *Certifier) getForCSR(ctx context.Context, domains []string, order acme.ExtendedOrder, bundle bool, csr, privateKeyPem []byte, preferredChain string) (*Resource, error) {
+	respOrder, err := c.core.Orders.UpdateForCSR(ctx, order.Finalize, csr)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +278,7 @@ func (c *Certifier) getForCSR(domains []string, order acme.ExtendedOrder, bundle
 
 	if respOrder.Status == acme.StatusValid {
 		// if the certificate is available right away, short cut!
-		ok, errR := c.checkResponse(respOrder, certRes, bundle, preferredChain)
+		ok, errR := c.checkResponse(ctx, respOrder, certRes, bundle, preferredChain)
 		if errR != nil {
 			return nil, errR
 		}
@@ -293,12 +294,12 @@ func (c *Certifier) getForCSR(domains []string, order acme.ExtendedOrder, bundle
 	}
 
 	err = wait.For("certificate", timeout, timeout/60, func() (bool, error) {
-		ord, errW := c.core.Orders.Get(order.Location)
+		ord, errW := c.core.Orders.Get(ctx, order.Location)
 		if errW != nil {
 			return false, errW
 		}
 
-		done, errW := c.checkResponse(ord, certRes, bundle, preferredChain)
+		done, errW := c.checkResponse(ctx, ord, certRes, bundle, preferredChain)
 		if errW != nil {
 			return false, errW
 		}
@@ -317,13 +318,13 @@ func (c *Certifier) getForCSR(domains []string, order acme.ExtendedOrder, bundle
 // The certRes input should already have the Domain (common name) field populated.
 //
 // If bundle is true, the certificate will be bundled with the issuer's cert.
-func (c *Certifier) checkResponse(order acme.ExtendedOrder, certRes *Resource, bundle bool, preferredChain string) (bool, error) {
+func (c *Certifier) checkResponse(ctx context.Context, order acme.ExtendedOrder, certRes *Resource, bundle bool, preferredChain string) (bool, error) {
 	valid, err := checkOrderStatus(order)
 	if err != nil || !valid {
 		return valid, err
 	}
 
-	certs, err := c.core.Certificates.GetAll(order.Certificate, bundle)
+	certs, err := c.core.Certificates.GetAll(ctx, order.Certificate, bundle)
 	if err != nil {
 		return false, err
 	}
@@ -364,12 +365,12 @@ func (c *Certifier) checkResponse(order acme.ExtendedOrder, certRes *Resource, b
 }
 
 // Revoke takes a PEM encoded certificate or bundle and tries to revoke it at the CA.
-func (c *Certifier) Revoke(cert []byte) error {
-	return c.RevokeWithReason(cert, nil)
+func (c *Certifier) Revoke(ctx context.Context, cert []byte) error {
+	return c.RevokeWithReason(ctx, cert, nil)
 }
 
 // RevokeWithReason takes a PEM encoded certificate or bundle and tries to revoke it at the CA.
-func (c *Certifier) RevokeWithReason(cert []byte, reason *uint) error {
+func (c *Certifier) RevokeWithReason(ctx context.Context, cert []byte, reason *uint) error {
 	certificates, err := certcrypto.ParsePEMBundle(cert)
 	if err != nil {
 		return err
@@ -385,7 +386,7 @@ func (c *Certifier) RevokeWithReason(cert []byte, reason *uint) error {
 		Reason:      reason,
 	}
 
-	return c.core.Certificates.Revoke(revokeMsg)
+	return c.core.Certificates.Revoke(ctx, revokeMsg)
 }
 
 // Renew takes a Resource and tries to renew the certificate.
@@ -398,7 +399,7 @@ func (c *Certifier) RevokeWithReason(cert []byte, reason *uint) error {
 // If bundle is true, the []byte contains both the issuer certificate and your issued certificate as a bundle.
 //
 // For private key reuse the PrivateKey property of the passed in Resource should be non-nil.
-func (c *Certifier) Renew(certRes Resource, bundle, mustStaple bool, preferredChain string) (*Resource, error) {
+func (c *Certifier) Renew(ctx context.Context, certRes Resource, bundle, mustStaple bool, preferredChain string) (*Resource, error) {
 	// Input certificate is PEM encoded.
 	// Decode it here as we may need the decoded cert later on in the renewal process.
 	// The input may be a bundle or a single certificate.
@@ -425,7 +426,7 @@ func (c *Certifier) Renew(certRes Resource, bundle, mustStaple bool, preferredCh
 			return nil, errP
 		}
 
-		return c.ObtainForCSR(ObtainForCSRRequest{
+		return c.ObtainForCSR(ctx, ObtainForCSRRequest{
 			CSR:            csr,
 			Bundle:         bundle,
 			PreferredChain: preferredChain,
@@ -447,7 +448,7 @@ func (c *Certifier) Renew(certRes Resource, bundle, mustStaple bool, preferredCh
 		MustStaple:     mustStaple,
 		PreferredChain: preferredChain,
 	}
-	return c.Obtain(query)
+	return c.Obtain(ctx, query)
 }
 
 // GetOCSP takes a PEM encoded cert or cert bundle returning the raw OCSP response,
@@ -536,8 +537,8 @@ func (c *Certifier) GetOCSP(bundle []byte) ([]byte, *ocsp.Response, error) {
 // The returned Resource will not have the PrivateKey and CSR fields populated as these will not be available.
 //
 // If bundle is true, the Certificate field in the returned Resource includes the issuer certificate.
-func (c *Certifier) Get(url string, bundle bool) (*Resource, error) {
-	cert, issuer, err := c.core.Certificates.Get(url, bundle)
+func (c *Certifier) Get(ctx context.Context, url string, bundle bool) (*Resource, error) {
+	cert, issuer, err := c.core.Certificates.Get(ctx, url, bundle)
 	if err != nil {
 		return nil, err
 	}

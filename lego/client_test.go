@@ -1,6 +1,7 @@
 package lego
 
 import (
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -28,7 +29,7 @@ func TestNewClient(t *testing.T) {
 	config := NewConfig(user)
 	config.CADirURL = apiURL + "/dir"
 
-	client, err := NewClient(config)
+	client, err := NewClient(context.Background(), config)
 	require.NoError(t, err, "Could not create client")
 
 	assert.NotNil(t, client)

@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -74,8 +75,8 @@ func (c *SolverManager) chooseSolver(authz acme.Authorization) solver {
 	return nil
 }
 
-func validate(core *api.Core, domain string, chlg acme.Challenge) error {
-	chlng, err := core.Challenges.New(chlg.URL)
+func validate(ctx context.Context, core *api.Core, domain string, chlg acme.Challenge) error {
+	chlng, err := core.Challenges.New(ctx, chlg.URL)
 	if err != nil {
 		return fmt.Errorf("failed to initiate challenge: %w", err)
 	}
@@ -108,7 +109,7 @@ func validate(core *api.Core, domain string, chlg acme.Challenge) error {
 	// After the path is sent, the ACME server will access our server.
 	// Repeatedly check the server for an updated status on our request.
 	operation := func() error {
-		authz, err := core.Authorizations.Get(chlng.AuthorizationURL)
+		authz, err := core.Authorizations.Get(ctx, chlng.AuthorizationURL)
 		if err != nil {
 			return backoff.Permanent(err)
 		}

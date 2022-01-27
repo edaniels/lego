@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -47,7 +48,7 @@ func newClient(ctx *cli.Context, acc registration.User, keyType certcrypto.KeyTy
 		config.HTTPClient.Timeout = time.Duration(ctx.GlobalInt("http-timeout")) * time.Second
 	}
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.TODO(), config)
 	if err != nil {
 		log.Fatalf("Could not create client: %v", err)
 	}

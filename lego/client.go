@@ -1,6 +1,7 @@
 package lego
 
 import (
+	"context"
 	"errors"
 	"net/url"
 
@@ -22,7 +23,7 @@ type Client struct {
 // NewClient creates a new ACME client on behalf of the user.
 // The client will depend on the ACME directory located at CADirURL for the rest of its actions.
 // A private key of type keyType (see KeyType constants) will be generated when requesting a new certificate if one isn't provided.
-func NewClient(config *Config) (*Client, error) {
+func NewClient(cancelCtx context.Context, config *Config) (*Client, error) {
 	if config == nil {
 		return nil, errors.New("a configuration must be provided")
 	}
@@ -49,7 +50,7 @@ func NewClient(config *Config) (*Client, error) {
 		kid = reg.URI
 	}
 
-	core, err := api.New(config.HTTPClient, config.UserAgent, config.CADirURL, kid, privateKey, config.Logger)
+	core, err := api.New(cancelCtx, config.HTTPClient, config.UserAgent, config.CADirURL, kid, privateKey, config.Logger)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package nonces
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,17 +12,19 @@ import (
 
 // Manager Manages nonces.
 type Manager struct {
-	do       *sender.Doer
-	nonceURL string
-	nonces   []string
+	cancelCtx context.Context
+	do        *sender.Doer
+	nonceURL  string
+	nonces    []string
 	sync.Mutex
 }
 
 // NewManager Creates a new Manager.
-func NewManager(do *sender.Doer, nonceURL string) *Manager {
+func NewManager(cancelCtx context.Context, do *sender.Doer, nonceURL string) *Manager {
 	return &Manager{
-		do:       do,
-		nonceURL: nonceURL,
+		cancelCtx: cancelCtx,
+		do:        do,
+		nonceURL:  nonceURL,
 	}
 }
 
@@ -51,11 +54,13 @@ func (n *Manager) Nonce() (string, error) {
 	if nonce, ok := n.Pop(); ok {
 		return nonce, nil
 	}
-	return n.getNonce()
+	// TODO(erd): wish jose.NonceSource had context.
+	// In the meantime, use cancelCtx.
+	return n.getNonce(n.cancelCtx)
 }
 
-func (n *Manager) getNonce() (string, error) {
-	resp, err := n.do.Head(n.nonceURL)
+func (n *Manager) getNonce(ctx context.Context) (string, error) {
+	resp, err := n.do.Head(ctx, n.nonceURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to get nonce from HTTP HEAD: %w", err)
 	}

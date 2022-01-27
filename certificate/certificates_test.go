@@ -1,6 +1,7 @@
 package certificate
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/pem"
@@ -169,7 +170,7 @@ func Test_checkResponse(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
+	core, err := api.New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -183,7 +184,7 @@ func Test_checkResponse(t *testing.T) {
 	certRes := &Resource{}
 	bundle := false
 
-	valid, err := certifier.checkResponse(order, certRes, bundle, "")
+	valid, err := certifier.checkResponse(context.Background(), order, certRes, bundle, "")
 	require.NoError(t, err)
 	assert.True(t, valid)
 	assert.NotNil(t, certRes)
@@ -221,7 +222,7 @@ func Test_checkResponse_issuerRelUp(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
+	core, err := api.New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -235,7 +236,7 @@ func Test_checkResponse_issuerRelUp(t *testing.T) {
 	certRes := &Resource{}
 	bundle := false
 
-	valid, err := certifier.checkResponse(order, certRes, bundle, "")
+	valid, err := certifier.checkResponse(context.Background(), order, certRes, bundle, "")
 	require.NoError(t, err)
 	assert.True(t, valid)
 	assert.NotNil(t, certRes)
@@ -263,7 +264,7 @@ func Test_checkResponse_embeddedIssuer(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
+	core, err := api.New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -277,7 +278,7 @@ func Test_checkResponse_embeddedIssuer(t *testing.T) {
 	certRes := &Resource{}
 	bundle := false
 
-	valid, err := certifier.checkResponse(order, certRes, bundle, "")
+	valid, err := certifier.checkResponse(context.Background(), order, certRes, bundle, "")
 	require.NoError(t, err)
 	assert.True(t, valid)
 	assert.NotNil(t, certRes)
@@ -315,7 +316,7 @@ func Test_checkResponse_alternate(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
+	core, err := api.New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -331,7 +332,7 @@ func Test_checkResponse_alternate(t *testing.T) {
 	}
 	bundle := false
 
-	valid, err := certifier.checkResponse(order, certRes, bundle, "DST Root CA X3")
+	valid, err := certifier.checkResponse(context.Background(), order, certRes, bundle, "DST Root CA X3")
 	require.NoError(t, err)
 
 	assert.True(t, valid)
@@ -360,12 +361,12 @@ func Test_Get(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
+	core, err := api.New(context.Background(), http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
 
-	certRes, err := certifier.Get(apiURL+"/acme/cert/test-cert", false)
+	certRes, err := certifier.Get(context.Background(), apiURL+"/acme/cert/test-cert", false)
 	require.NoError(t, err)
 
 	assert.NotNil(t, certRes)
@@ -382,6 +383,6 @@ type resolverMock struct {
 	error error
 }
 
-func (r *resolverMock) Solve(authorizations []acme.Authorization) error {
+func (r *resolverMock) Solve(ctx context.Context, authorizations []acme.Authorization) error {
 	return r.error
 }

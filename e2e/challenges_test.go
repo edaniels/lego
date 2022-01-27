@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -209,13 +210,13 @@ func TestChallengeHTTP_Client_Obtain(t *testing.T) {
 	config := lego.NewConfig(user)
 	config.CADirURL = load.PebbleOptions.HealthCheckURL
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.Background(), config)
 	require.NoError(t, err)
 
 	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", "5002"))
 	require.NoError(t, err)
 
-	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+	reg, err := client.Registration.Register(context.Background(), registration.RegisterOptions{TermsOfServiceAgreed: true})
 	require.NoError(t, err)
 	user.registration = reg
 
@@ -223,7 +224,7 @@ func TestChallengeHTTP_Client_Obtain(t *testing.T) {
 		Domains: []string{"acme.wtf"},
 		Bundle:  true,
 	}
-	resource, err := client.Certificate.Obtain(request)
+	resource, err := client.Certificate.Obtain(context.Background(), request)
 	require.NoError(t, err)
 
 	require.NotNil(t, resource)
@@ -247,17 +248,17 @@ func TestChallengeHTTP_Client_Registration_QueryRegistration(t *testing.T) {
 	config := lego.NewConfig(user)
 	config.CADirURL = load.PebbleOptions.HealthCheckURL
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.Background(), config)
 	require.NoError(t, err)
 
 	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", "5002"))
 	require.NoError(t, err)
 
-	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+	reg, err := client.Registration.Register(context.Background(), registration.RegisterOptions{TermsOfServiceAgreed: true})
 	require.NoError(t, err)
 	user.registration = reg
 
-	resource, err := client.Registration.QueryRegistration()
+	resource, err := client.Registration.QueryRegistration(context.Background())
 	require.NoError(t, err)
 
 	require.NotNil(t, resource)
@@ -279,13 +280,13 @@ func TestChallengeTLS_Client_Obtain(t *testing.T) {
 	config := lego.NewConfig(user)
 	config.CADirURL = load.PebbleOptions.HealthCheckURL
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.Background(), config)
 	require.NoError(t, err)
 
 	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", "5001"))
 	require.NoError(t, err)
 
-	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+	reg, err := client.Registration.Register(context.Background(), registration.RegisterOptions{TermsOfServiceAgreed: true})
 	require.NoError(t, err)
 	user.registration = reg
 
@@ -298,7 +299,7 @@ func TestChallengeTLS_Client_Obtain(t *testing.T) {
 		Bundle:     true,
 		PrivateKey: privateKeyCSR,
 	}
-	resource, err := client.Certificate.Obtain(request)
+	resource, err := client.Certificate.Obtain(context.Background(), request)
 	require.NoError(t, err)
 
 	require.NotNil(t, resource)
@@ -322,13 +323,13 @@ func TestChallengeTLS_Client_ObtainForCSR(t *testing.T) {
 	config := lego.NewConfig(user)
 	config.CADirURL = load.PebbleOptions.HealthCheckURL
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.Background(), config)
 	require.NoError(t, err)
 
 	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", "5001"))
 	require.NoError(t, err)
 
-	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+	reg, err := client.Registration.Register(context.Background(), registration.RegisterOptions{TermsOfServiceAgreed: true})
 	require.NoError(t, err)
 	user.registration = reg
 
@@ -338,7 +339,7 @@ func TestChallengeTLS_Client_ObtainForCSR(t *testing.T) {
 	csr, err := x509.ParseCertificateRequest(csrRaw)
 	require.NoError(t, err)
 
-	resource, err := client.Certificate.ObtainForCSR(certificate.ObtainForCSRRequest{
+	resource, err := client.Certificate.ObtainForCSR(context.Background(), certificate.ObtainForCSRRequest{
 		CSR:    csr,
 		Bundle: true,
 	})
@@ -368,17 +369,17 @@ func TestRegistrar_UpdateAccount(t *testing.T) {
 	config := lego.NewConfig(user)
 	config.CADirURL = load.PebbleOptions.HealthCheckURL
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.Background(), config)
 	require.NoError(t, err)
 
 	regOptions := registration.RegisterOptions{TermsOfServiceAgreed: true}
-	reg, err := client.Registration.Register(regOptions)
+	reg, err := client.Registration.Register(context.Background(), regOptions)
 	require.NoError(t, err)
 	require.Equal(t, []string{"mailto:foo@example.com"}, reg.Body.Contact)
 	user.registration = reg
 
 	user.email = "bar@example.com"
-	resource, err := client.Registration.UpdateRegistration(regOptions)
+	resource, err := client.Registration.UpdateRegistration(context.Background(), regOptions)
 	require.NoError(t, err)
 	require.Equal(t, []string{"mailto:bar@example.com"}, resource.Body.Contact)
 	require.Equal(t, reg.URI, resource.URI)

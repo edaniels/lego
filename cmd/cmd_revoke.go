@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/urfave/cli"
@@ -45,7 +47,7 @@ func revoke(ctx *cli.Context) error {
 
 		reason := ctx.Uint("reason")
 
-		err = client.Certificate.RevokeWithReason(certBytes, &reason)
+		err = client.Certificate.RevokeWithReason(context.TODO(), certBytes, &reason)
 		if err != nil {
 			log.Fatalf("Error while revoking the certificate for domain %s\n\t%v", domain, err)
 		}

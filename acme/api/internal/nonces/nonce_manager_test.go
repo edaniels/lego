@@ -1,6 +1,7 @@
 package nonces
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -25,7 +26,7 @@ func TestNotHoldingLockWhileMakingHTTPRequests(t *testing.T) {
 	t.Cleanup(server.Close)
 
 	doer := sender.NewDoer(http.DefaultClient, "lego-test")
-	j := NewManager(doer, server.URL)
+	j := NewManager(context.TODO(), doer, server.URL)
 	ch := make(chan bool)
 	resultCh := make(chan bool)
 	go func() {

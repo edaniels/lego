@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 // Interface for all challenge solvers to implement.
 type solver interface {
-	Solve(authorization acme.Authorization) error
+	Solve(ctx context.Context, authorization acme.Authorization) error
 }
 
 // Interface for challenges like dns, where we can set a record in advance for ALL challenges.
@@ -48,7 +49,7 @@ func NewProber(solverManager *SolverManager) *Prober {
 
 // Solve Looks through the challenge combinations to find a solvable match.
 // Then solves the challenges in series and returns.
-func (p *Prober) Solve(authorizations []acme.Authorization) error {
+func (p *Prober) Solve(ctx context.Context, authorizations []acme.Authorization) error {
 	failures := make(obtainError)
 
 	var authSolvers []*selectedAuthSolver
@@ -82,9 +83,9 @@ func (p *Prober) Solve(authorizations []acme.Authorization) error {
 		}
 	}
 
-	parallelSolve(authSolvers, failures)
+	parallelSolve(ctx, authSolvers, failures)
 
-	sequentialSolve(authSolversSequential, failures, p.solverManager.core.Logger)
+	sequentialSolve(ctx, authSolversSequential, failures, p.solverManager.core.Logger)
 
 	// Be careful not to return an empty failures map,
 	// for even an empty obtainError is a non-nil error value
@@ -94,7 +95,7 @@ func (p *Prober) Solve(authorizations []acme.Authorization) error {
 	return nil
 }
 
-func sequentialSolve(authSolvers []*selectedAuthSolver, failures obtainError, logger golog.Logger) {
+func sequentialSolve(ctx context.Context, authSolvers []*selectedAuthSolver, failures obtainError, logger golog.Logger) {
 	for i, authSolver := range authSolvers {
 		// Submit the challenge
 		domain := challenge.GetTargetedDomain(authSolver.authz)
@@ -109,7 +110,7 @@ func sequentialSolve(authSolvers []*selectedAuthSolver, failures obtainError, lo
 		}
 
 		// Solve challenge
-		err := authSolver.solver.Solve(authSolver.authz)
+		err := authSolver.solver.Solve(ctx, authSolver.authz)
 		if err != nil {
 			failures[domain] = err
 			cleanUp(authSolver.solver, authSolver.authz)
@@ -128,7 +129,7 @@ func sequentialSolve(authSolvers []*selectedAuthSolver, failures obtainError, lo
 	}
 }
 
-func parallelSolve(authSolvers []*selectedAuthSolver, failures obtainError) {
+func parallelSolve(ctx context.Context, authSolvers []*selectedAuthSolver, failures obtainError) {
 	// For all valid preSolvers, first submit the challenges so they have max time to propagate
 	for _, authSolver := range authSolvers {
 		authz := authSolver.authz
@@ -156,7 +157,7 @@ func parallelSolve(authSolvers []*selectedAuthSolver, failures obtainError) {
 			continue
 		}
 
-		err := authSolver.solver.Solve(authz)
+		err := authSolver.solver.Solve(ctx, authz)
 		if err != nil {
 			failures[domain] = err
 		}

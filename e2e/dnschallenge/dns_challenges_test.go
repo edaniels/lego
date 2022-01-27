@@ -1,6 +1,7 @@
 package dnschallenge
 
 import (
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -86,7 +87,7 @@ func TestChallengeDNS_Client_Obtain(t *testing.T) {
 	config := lego.NewConfig(user)
 	config.CADirURL = "https://localhost:15000/dir"
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(context.Background(), config)
 	require.NoError(t, err)
 
 	provider, err := dns.NewDNSChallengeProviderByName("exec")
@@ -97,7 +98,7 @@ func TestChallengeDNS_Client_Obtain(t *testing.T) {
 		dns01.DisableCompletePropagationRequirement())
 	require.NoError(t, err)
 
-	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+	reg, err := client.Registration.Register(context.Background(), registration.RegisterOptions{TermsOfServiceAgreed: true})
 	require.NoError(t, err)
 	user.registration = reg
 
@@ -112,7 +113,7 @@ func TestChallengeDNS_Client_Obtain(t *testing.T) {
 		Bundle:     true,
 		PrivateKey: privateKeyCSR,
 	}
-	resource, err := client.Certificate.Obtain(request)
+	resource, err := client.Certificate.Obtain(context.Background(), request)
 	require.NoError(t, err)
 
 	require.NotNil(t, resource)

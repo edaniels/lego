@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
@@ -163,5 +164,5 @@ func (d *DNSProvider) waitNameservers(domain string, zone *internal.Zone) error 
 		log.Infof("[%s] Sync %d/%d complete", domain, syncProgress.Updated, syncProgress.Total)
 
 		return syncProgress.Complete, nil
-	})
+	}, golog.Global)
 }

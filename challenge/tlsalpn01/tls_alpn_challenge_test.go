@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/challenge"
@@ -19,6 +20,7 @@ import (
 )
 
 func TestChallenge(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	domain := "localhost:23457"
@@ -65,7 +67,7 @@ func TestChallenge(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 512)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	solver := NewChallenge(
@@ -88,12 +90,13 @@ func TestChallenge(t *testing.T) {
 }
 
 func TestChallengeInvalidPort(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 128)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	solver := NewChallenge(

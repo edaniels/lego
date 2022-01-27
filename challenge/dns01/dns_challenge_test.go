@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/challenge"
@@ -32,12 +33,13 @@ func (p *providerTimeoutMock) CleanUp(domain, token, keyAuth string) error { ret
 func (p *providerTimeoutMock) Timeout() (time.Duration, time.Duration)     { return p.timeout, p.interval }
 
 func TestChallenge_PreSolve(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 512)
 	require.NoError(t, err)
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -114,12 +116,13 @@ func TestChallenge_PreSolve(t *testing.T) {
 }
 
 func TestChallenge_Solve(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 512)
 	require.NoError(t, err)
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -201,12 +204,13 @@ func TestChallenge_Solve(t *testing.T) {
 }
 
 func TestChallenge_CleanUp(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 512)
 	require.NoError(t, err)
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	testCases := []struct {

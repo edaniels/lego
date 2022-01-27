@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api/internal/nonces"
 	"github.com/go-acme/lego/v4/acme/api/internal/secure"
@@ -24,6 +25,7 @@ type Core struct {
 	jws          *secure.JWS
 	directory    acme.Directory
 	HTTPClient   *http.Client
+	Logger       golog.Logger
 
 	common         service // Reuse a single struct instead of allocating one for each service on the heap.
 	Accounts       *AccountService
@@ -34,7 +36,7 @@ type Core struct {
 }
 
 // New Creates a new Core.
-func New(httpClient *http.Client, userAgent, caDirURL, kid string, privateKey crypto.PrivateKey) (*Core, error) {
+func New(httpClient *http.Client, userAgent, caDirURL, kid string, privateKey crypto.PrivateKey, logger golog.Logger) (*Core, error) {
 	doer := sender.NewDoer(httpClient, userAgent)
 
 	dir, err := getDirectory(doer, caDirURL)
@@ -46,7 +48,7 @@ func New(httpClient *http.Client, userAgent, caDirURL, kid string, privateKey cr
 
 	jws := secure.NewJWS(privateKey, kid, nonceManager)
 
-	c := &Core{doer: doer, nonceManager: nonceManager, jws: jws, directory: dir, HTTPClient: httpClient}
+	c := &Core{doer: doer, nonceManager: nonceManager, jws: jws, directory: dir, HTTPClient: httpClient, Logger: logger}
 
 	c.common.core = c
 	c.Accounts = (*AccountService)(&c.common)

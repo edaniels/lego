@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/log"
@@ -83,7 +84,7 @@ func (p *Prober) Solve(authorizations []acme.Authorization) error {
 
 	parallelSolve(authSolvers, failures)
 
-	sequentialSolve(authSolversSequential, failures)
+	sequentialSolve(authSolversSequential, failures, p.solverManager.core.Logger)
 
 	// Be careful not to return an empty failures map,
 	// for even an empty obtainError is a non-nil error value
@@ -93,7 +94,7 @@ func (p *Prober) Solve(authorizations []acme.Authorization) error {
 	return nil
 }
 
-func sequentialSolve(authSolvers []*selectedAuthSolver, failures obtainError) {
+func sequentialSolve(authSolvers []*selectedAuthSolver, failures obtainError, logger golog.Logger) {
 	for i, authSolver := range authSolvers {
 		// Submit the challenge
 		domain := challenge.GetTargetedDomain(authSolver.authz)
@@ -121,7 +122,7 @@ func sequentialSolve(authSolvers []*selectedAuthSolver, failures obtainError) {
 		if len(authSolvers)-1 > i {
 			solvr := authSolver.solver.(sequential)
 			_, interval := solvr.Sequential()
-			log.Infof("sequence: wait for %s", interval)
+			logger.Infof("sequence: wait for %s", interval)
 			time.Sleep(interval)
 		}
 	}

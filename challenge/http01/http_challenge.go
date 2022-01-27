@@ -6,7 +6,6 @@ import (
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/log"
 )
 
 type ValidateFunc func(core *api.Core, domain string, chlng acme.Challenge) error
@@ -36,7 +35,7 @@ func (c *Challenge) SetProvider(provider challenge.Provider) {
 
 func (c *Challenge) Solve(authz acme.Authorization) error {
 	domain := challenge.GetTargetedDomain(authz)
-	log.Infof("[%s] acme: Trying to solve HTTP-01", domain)
+	c.core.Logger.Infof("[%s] acme: Trying to solve HTTP-01", domain)
 
 	chlng, err := challenge.FindChallenge(challenge.HTTP01, authz)
 	if err != nil {
@@ -56,7 +55,7 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 	defer func() {
 		err := c.provider.CleanUp(authz.Identifier.Value, chlng.Token, keyAuth)
 		if err != nil {
-			log.Warnf("[%s] acme: cleaning up failed: %v", domain, err)
+			c.core.Logger.Warnf("[%s] acme: cleaning up failed: %v", domain, err)
 		}
 	}()
 

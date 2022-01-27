@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/acme"
-	"github.com/go-acme/lego/v4/log"
 )
 
 const (
@@ -46,7 +45,7 @@ func (c *Certifier) getAuthorizations(order acme.ExtendedOrder) ([]acme.Authoriz
 	}
 
 	for i, auth := range order.Authorizations {
-		log.Infof("[%s] AuthURL: %s", order.Identifiers[i].Value, auth)
+		c.core.Logger.Infof("[%s] AuthURL: %s", order.Identifiers[i].Value, auth)
 	}
 
 	close(resc)
@@ -64,18 +63,18 @@ func (c *Certifier) deactivateAuthorizations(order acme.ExtendedOrder, force boo
 	for _, authzURL := range order.Authorizations {
 		auth, err := c.core.Authorizations.Get(authzURL)
 		if err != nil {
-			log.Infof("Unable to get the authorization for: %s", authzURL)
+			c.core.Logger.Infof("Unable to get the authorization for: %s", authzURL)
 			continue
 		}
 
 		if auth.Status == acme.StatusValid && !force {
-			log.Infof("Skipping deactivating of valid auth: %s", authzURL)
+			c.core.Logger.Infof("Skipping deactivating of valid auth: %s", authzURL)
 			continue
 		}
 
-		log.Infof("Deactivating auth: %s", authzURL)
+		c.core.Logger.Infof("Deactivating auth: %s", authzURL)
 		if c.core.Authorizations.Deactivate(authzURL) != nil {
-			log.Infof("Unable to deactivate the authorization: %s", authzURL)
+			c.core.Logger.Infof("Unable to deactivate the authorization: %s", authzURL)
 		}
 	}
 }

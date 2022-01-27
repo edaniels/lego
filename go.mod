@@ -20,13 +20,13 @@ require (
 	github.com/cloudflare/cloudflare-go v0.20.0
 	github.com/cpu/goacmedns v0.1.1
 	github.com/dnsimple/dnsimple-go v0.70.1
+	github.com/edaniels/golog v0.0.0-20210326173913-16d408aa7a5e
 	github.com/exoscale/egoscale v0.67.0
 	github.com/google/go-querystring v1.1.0
 	github.com/gophercloud/gophercloud v0.16.0
 	github.com/gophercloud/utils v0.0.0-20210216074907-f6de111f2eae
 	github.com/iij/doapi v0.0.0-20190504054126-0bbf12d6d7df
 	github.com/infobloxopen/infoblox-go-client v1.1.1
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/labbsr0x/bindman-dns-webhook v1.0.2
 	github.com/linode/linodego v0.31.1
 	github.com/liquidweb/liquidweb-go v1.6.3

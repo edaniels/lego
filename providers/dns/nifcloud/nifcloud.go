@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
@@ -170,5 +171,5 @@ func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 			return false, fmt.Errorf("failed to query change status: %w", err)
 		}
 		return resp.ChangeInfo.Status == "INSYNC", nil
-	})
+	}, golog.Global)
 }

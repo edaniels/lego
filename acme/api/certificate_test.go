@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/platform/tester"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -74,6 +75,7 @@ rzFL1KZfz+HZdnFwFW2T2gVW8L3ii1l9AJDuKzlvjUH3p6bgihVq02sjT8mx+GM2
 `
 
 func TestCertificateService_Get_issuerRelUp(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/certificate", func(w http.ResponseWriter, _ *http.Request) {
@@ -97,7 +99,7 @@ func TestCertificateService_Get_issuerRelUp(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	cert, issuer, err := core.Certificates.Get(apiURL+"/certificate", true)
@@ -107,6 +109,7 @@ func TestCertificateService_Get_issuerRelUp(t *testing.T) {
 }
 
 func TestCertificateService_Get_embeddedIssuer(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/certificate", func(w http.ResponseWriter, _ *http.Request) {
@@ -120,7 +123,7 @@ func TestCertificateService_Get_embeddedIssuer(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	cert, issuer, err := core.Certificates.Get(apiURL+"/certificate", true)

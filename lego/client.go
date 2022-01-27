@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/certificate"
 	"github.com/go-acme/lego/v4/challenge/resolver"
@@ -25,6 +26,9 @@ func NewClient(config *Config) (*Client, error) {
 	if config == nil {
 		return nil, errors.New("a configuration must be provided")
 	}
+	if config.Logger == nil {
+		config.Logger = golog.Global
+	}
 
 	_, err := url.Parse(config.CADirURL)
 	if err != nil {
@@ -45,7 +49,7 @@ func NewClient(config *Config) (*Client, error) {
 		kid = reg.URI
 	}
 
-	core, err := api.New(config.HTTPClient, config.UserAgent, config.CADirURL, kid, privateKey)
+	core, err := api.New(config.HTTPClient, config.UserAgent, config.CADirURL, kid, privateKey, config.Logger)
 	if err != nil {
 		return nil, err
 	}

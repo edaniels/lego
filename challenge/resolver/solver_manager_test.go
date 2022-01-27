@@ -9,6 +9,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/platform/tester"
@@ -32,6 +33,7 @@ func TestByType(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	var statuses []string
@@ -95,7 +97,7 @@ func TestValidate(t *testing.T) {
 		}
 	})
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	testCases := []struct {

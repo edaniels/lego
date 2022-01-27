@@ -14,7 +14,6 @@ import (
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/challenge/http01"
 	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
-	"github.com/go-acme/lego/v4/log"
 )
 
 type byType []acme.Challenge
@@ -66,10 +65,10 @@ func (c *SolverManager) chooseSolver(authz acme.Authorization) solver {
 	domain := challenge.GetTargetedDomain(authz)
 	for _, chlg := range authz.Challenges {
 		if solvr, ok := c.solvers[challenge.Type(chlg.Type)]; ok {
-			log.Infof("[%s] acme: use %s solver", domain, chlg.Type)
+			c.core.Logger.Infof("[%s] acme: use %s solver", domain, chlg.Type)
 			return solvr
 		}
-		log.Infof("[%s] acme: Could not find solver for: %s", domain, chlg.Type)
+		c.core.Logger.Infof("[%s] acme: Could not find solver for: %s", domain, chlg.Type)
 	}
 
 	return nil
@@ -87,7 +86,7 @@ func validate(core *api.Core, domain string, chlg acme.Challenge) error {
 	}
 
 	if valid {
-		log.Infof("[%s] The server validated our request", domain)
+		core.Logger.Infof("[%s] The server validated our request", domain)
 		return nil
 	}
 
@@ -120,7 +119,7 @@ func validate(core *api.Core, domain string, chlg acme.Challenge) error {
 		}
 
 		if valid {
-			log.Infof("[%s] The server validated our request", domain)
+			core.Logger.Infof("[%s] The server validated our request", domain)
 			return nil
 		}
 

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/platform/tester"
@@ -14,6 +15,7 @@ import (
 )
 
 func TestRegistrar_ResolveAccountByKey(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/account", func(w http.ResponseWriter, _ *http.Request) {
@@ -36,7 +38,7 @@ func TestRegistrar_ResolveAccountByKey(t *testing.T) {
 		privatekey: key,
 	}
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	registrar := NewRegistrar(core, user)

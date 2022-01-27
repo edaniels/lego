@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"golang.org/x/crypto/ocsp"
 	"golang.org/x/net/idna"
@@ -109,12 +109,12 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 		return nil, errors.New("no domains to obtain a certificate for")
 	}
 
-	domains := sanitizeDomain(request.Domains)
+	domains := sanitizeDomain(request.Domains, c.core.Logger)
 
 	if request.Bundle {
-		log.Infof("[%s] acme: Obtaining bundled SAN certificate", strings.Join(domains, ", "))
+		c.core.Logger.Infof("[%s] acme: Obtaining bundled SAN certificate", strings.Join(domains, ", "))
 	} else {
-		log.Infof("[%s] acme: Obtaining SAN certificate", strings.Join(domains, ", "))
+		c.core.Logger.Infof("[%s] acme: Obtaining SAN certificate", strings.Join(domains, ", "))
 	}
 
 	order, err := c.core.Orders.New(domains)
@@ -136,7 +136,7 @@ func (c *Certifier) Obtain(request ObtainRequest) (*Resource, error) {
 		return nil, err
 	}
 
-	log.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
+	c.core.Logger.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
 
 	failures := make(obtainError)
 	cert, err := c.getForOrder(domains, order, request.Bundle, request.PrivateKey, request.MustStaple, request.PreferredChain)
@@ -177,9 +177,9 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 	domains := certcrypto.ExtractDomainsCSR(request.CSR)
 
 	if request.Bundle {
-		log.Infof("[%s] acme: Obtaining bundled SAN certificate given a CSR", strings.Join(domains, ", "))
+		c.core.Logger.Infof("[%s] acme: Obtaining bundled SAN certificate given a CSR", strings.Join(domains, ", "))
 	} else {
-		log.Infof("[%s] acme: Obtaining SAN certificate given a CSR", strings.Join(domains, ", "))
+		c.core.Logger.Infof("[%s] acme: Obtaining SAN certificate given a CSR", strings.Join(domains, ", "))
 	}
 
 	order, err := c.core.Orders.New(domains)
@@ -201,7 +201,7 @@ func (c *Certifier) ObtainForCSR(request ObtainForCSRRequest) (*Resource, error)
 		return nil, err
 	}
 
-	log.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
+	c.core.Logger.Infof("[%s] acme: Validations succeeded; requesting certificates", strings.Join(domains, ", "))
 
 	failures := make(obtainError)
 	cert, err := c.getForCSR(domains, order, request.Bundle, request.CSR.Raw, nil, request.PreferredChain)
@@ -304,7 +304,7 @@ func (c *Certifier) getForCSR(domains []string, order acme.ExtendedOrder, bundle
 		}
 
 		return done, nil
-	})
+	}, c.core.Logger)
 
 	return certRes, err
 }
@@ -335,7 +335,7 @@ func (c *Certifier) checkResponse(order acme.ExtendedOrder, certRes *Resource, b
 	certRes.CertStableURL = order.Certificate
 
 	if preferredChain == "" {
-		log.Infof("[%s] Server responded with a certificate.", certRes.Domain)
+		c.core.Logger.Infof("[%s] Server responded with a certificate.", certRes.Domain)
 
 		return true, nil
 	}
@@ -347,7 +347,7 @@ func (c *Certifier) checkResponse(order acme.ExtendedOrder, certRes *Resource, b
 		}
 
 		if ok {
-			log.Infof("[%s] Server responded with a certificate for the preferred certificate chains %q.", certRes.Domain, preferredChain)
+			c.core.Logger.Infof("[%s] Server responded with a certificate for the preferred certificate chains %q.", certRes.Domain, preferredChain)
 
 			certRes.IssuerCertificate = cert.Issuer
 			certRes.Certificate = cert.Cert
@@ -358,7 +358,7 @@ func (c *Certifier) checkResponse(order acme.ExtendedOrder, certRes *Resource, b
 		}
 	}
 
-	log.Infof("lego has been configured to prefer certificate chains with issuer %q, but no chain from the CA matched this issuer. Using the default certificate chain instead.", preferredChain)
+	c.core.Logger.Infof("lego has been configured to prefer certificate chains with issuer %q, but no chain from the CA matched this issuer. Using the default certificate chain instead.", preferredChain)
 
 	return true, nil
 }
@@ -414,7 +414,7 @@ func (c *Certifier) Renew(certRes Resource, bundle, mustStaple bool, preferredCh
 
 	// This is just meant to be informal for the user.
 	timeLeft := x509Cert.NotAfter.Sub(time.Now().UTC())
-	log.Infof("[%s] acme: Trying renewal with %d hours remaining", certRes.Domain, int(timeLeft.Hours()))
+	c.core.Logger.Infof("[%s] acme: Trying renewal with %d hours remaining", certRes.Domain, int(timeLeft.Hours()))
 
 	// We always need to request a new certificate to renew.
 	// Start by checking to see if the certificate was based off a CSR,
@@ -588,12 +588,12 @@ func checkOrderStatus(order acme.ExtendedOrder) (bool, error) {
 // That is, it MUST be encoded according to the rules in Section 7 of [RFC5280].
 //
 // https://www.rfc-editor.org/rfc/rfc5280.html#section-7
-func sanitizeDomain(domains []string) []string {
+func sanitizeDomain(domains []string, logger golog.Logger) []string {
 	var sanitizedDomains []string
 	for _, domain := range domains {
 		sanitizedDomain, err := idna.ToASCII(domain)
 		if err != nil {
-			log.Infof("skip domain %q: unable to sanitize (punnycode): %v", domain, err)
+			logger.Infof("skip domain %q: unable to sanitize (punnycode): %v", domain, err)
 		} else {
 			sanitizedDomains = append(sanitizedDomains, sanitizedDomain)
 		}

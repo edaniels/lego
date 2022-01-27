@@ -12,7 +12,6 @@ import (
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/log"
 )
 
 // idPeAcmeIdentifierV1 is the SMI Security for PKIX Certification Extension OID referencing the ACME extension.
@@ -42,7 +41,7 @@ func (c *Challenge) SetProvider(provider challenge.Provider) {
 // Solve manages the provider to validate and solve the challenge.
 func (c *Challenge) Solve(authz acme.Authorization) error {
 	domain := authz.Identifier.Value
-	log.Infof("[%s] acme: Trying to solve TLS-ALPN-01", challenge.GetTargetedDomain(authz))
+	c.core.Logger.Infof("[%s] acme: Trying to solve TLS-ALPN-01", challenge.GetTargetedDomain(authz))
 
 	chlng, err := challenge.FindChallenge(challenge.TLSALPN01, authz)
 	if err != nil {
@@ -62,7 +61,7 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 	defer func() {
 		err := c.provider.CleanUp(domain, chlng.Token, keyAuth)
 		if err != nil {
-			log.Warnf("[%s] acme: cleaning up failed: %v", challenge.GetTargetedDomain(authz), err)
+			c.core.Logger.Warnf("[%s] acme: cleaning up failed: %v", challenge.GetTargetedDomain(authz), err)
 		}
 	}()
 

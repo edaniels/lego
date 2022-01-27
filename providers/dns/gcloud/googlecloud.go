@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/config/env"
@@ -274,7 +275,7 @@ func (d *DNSProvider) applyChanges(zone string, change *dns.Change) error {
 		}
 
 		return false, fmt.Errorf("status: %s", chg.Status)
-	})
+	}, golog.Global)
 }
 
 // CleanUp removes the TXT record matching the specified parameters.

@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/route53"
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
@@ -228,7 +229,7 @@ func (d *DNSProvider) changeRecord(action, hostedZoneID string, recordSet *route
 			return true, nil
 		}
 		return false, fmt.Errorf("unable to retrieve change: ID=%s", aws.StringValue(changeID))
-	})
+	}, golog.Global)
 }
 
 func (d *DNSProvider) getExistingRecordSets(hostedZoneID, fqdn string) ([]*route53.ResourceRecord, error) {

@@ -11,7 +11,6 @@ import (
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/challenge"
-	"github.com/go-acme/lego/v4/log"
 	"github.com/go-acme/lego/v4/platform/wait"
 	"github.com/miekg/dns"
 )
@@ -63,7 +62,7 @@ func NewChallenge(core *api.Core, validate ValidateFunc, provider challenge.Prov
 	for _, opt := range opts {
 		err := opt(chlg)
 		if err != nil {
-			log.Infof("challenge option error: %v", err)
+			core.Logger.Infof("challenge option error: %v", err)
 		}
 	}
 
@@ -74,7 +73,7 @@ func NewChallenge(core *api.Core, validate ValidateFunc, provider challenge.Prov
 // It does not validate record propagation, or do anything at all with the acme server.
 func (c *Challenge) PreSolve(authz acme.Authorization) error {
 	domain := challenge.GetTargetedDomain(authz)
-	log.Infof("[%s] acme: Preparing to solve DNS-01", domain)
+	c.core.Logger.Infof("[%s] acme: Preparing to solve DNS-01", domain)
 
 	chlng, err := challenge.FindChallenge(challenge.DNS01, authz)
 	if err != nil {
@@ -101,7 +100,7 @@ func (c *Challenge) PreSolve(authz acme.Authorization) error {
 
 func (c *Challenge) Solve(authz acme.Authorization) error {
 	domain := challenge.GetTargetedDomain(authz)
-	log.Infof("[%s] acme: Trying to solve DNS-01", domain)
+	c.core.Logger.Infof("[%s] acme: Trying to solve DNS-01", domain)
 
 	chlng, err := challenge.FindChallenge(challenge.DNS01, authz)
 	if err != nil {
@@ -124,17 +123,17 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 		timeout, interval = DefaultPropagationTimeout, DefaultPollingInterval
 	}
 
-	log.Infof("[%s] acme: Checking DNS record propagation using %+v", domain, recursiveNameservers)
+	c.core.Logger.Infof("[%s] acme: Checking DNS record propagation using %+v", domain, recursiveNameservers)
 
 	time.Sleep(interval)
 
 	err = wait.For("propagation", timeout, interval, func() (bool, error) {
 		stop, errP := c.preCheck.call(domain, fqdn, value)
 		if !stop || errP != nil {
-			log.Infof("[%s] acme: Waiting for DNS record propagation.", domain)
+			c.core.Logger.Infof("[%s] acme: Waiting for DNS record propagation.", domain)
 		}
 		return stop, errP
-	})
+	}, c.core.Logger)
 	if err != nil {
 		return err
 	}
@@ -145,7 +144,7 @@ func (c *Challenge) Solve(authz acme.Authorization) error {
 
 // CleanUp cleans the challenge.
 func (c *Challenge) CleanUp(authz acme.Authorization) error {
-	log.Infof("[%s] acme: Cleaning DNS-01 challenge", challenge.GetTargetedDomain(authz))
+	c.core.Logger.Infof("[%s] acme: Cleaning DNS-01 challenge", challenge.GetTargetedDomain(authz))
 
 	chlng, err := challenge.FindChallenge(challenge.DNS01, authz)
 	if err != nil {

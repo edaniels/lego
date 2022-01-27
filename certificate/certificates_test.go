@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/certcrypto"
@@ -154,6 +155,7 @@ Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ
 `
 
 func Test_checkResponse(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/certificate", func(w http.ResponseWriter, _ *http.Request) {
@@ -167,7 +169,7 @@ func Test_checkResponse(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -195,6 +197,7 @@ func Test_checkResponse(t *testing.T) {
 }
 
 func Test_checkResponse_issuerRelUp(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/certificate", func(w http.ResponseWriter, _ *http.Request) {
@@ -218,7 +221,7 @@ func Test_checkResponse_issuerRelUp(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -246,6 +249,7 @@ func Test_checkResponse_issuerRelUp(t *testing.T) {
 }
 
 func Test_checkResponse_embeddedIssuer(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/certificate", func(w http.ResponseWriter, _ *http.Request) {
@@ -259,7 +263,7 @@ func Test_checkResponse_embeddedIssuer(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -287,6 +291,7 @@ func Test_checkResponse_embeddedIssuer(t *testing.T) {
 }
 
 func Test_checkResponse_alternate(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/certificate", func(w http.ResponseWriter, _ *http.Request) {
@@ -310,7 +315,7 @@ func Test_checkResponse_alternate(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})
@@ -341,6 +346,7 @@ func Test_checkResponse_alternate(t *testing.T) {
 }
 
 func Test_Get(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	mux.HandleFunc("/acme/cert/test-cert", func(w http.ResponseWriter, _ *http.Request) {
@@ -354,7 +360,7 @@ func Test_Get(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", key, logger)
 	require.NoError(t, err)
 
 	certifier := NewCertifier(core, &resolverMock{}, CertifierOptions{KeyType: certcrypto.RSA2048})

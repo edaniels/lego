@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/acme/api"
 	"github.com/go-acme/lego/v4/challenge"
@@ -68,6 +69,7 @@ func TestProviderServer_GetAddress(t *testing.T) {
 }
 
 func TestChallenge(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	providerServer := NewProviderServer("", "23457")
@@ -101,7 +103,7 @@ func TestChallenge(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 512)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	solver := NewChallenge(core, validate, providerServer)
@@ -120,6 +122,7 @@ func TestChallenge(t *testing.T) {
 }
 
 func TestChallengeUnix(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	if runtime.GOOS != "linux" {
 		t.Skip("only for UNIX systems")
 	}
@@ -170,7 +173,7 @@ func TestChallengeUnix(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 512)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	solver := NewChallenge(core, validate, providerServer)
@@ -189,12 +192,13 @@ func TestChallengeUnix(t *testing.T) {
 }
 
 func TestChallengeInvalidPort(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 128)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	validate := func(_ *api.Core, _ string, _ acme.Challenge) error { return nil }
@@ -372,6 +376,7 @@ func TestChallengeWithProxy(t *testing.T) {
 func testServeWithProxy(t *testing.T, header, extra *testProxyHeader, expectError bool) {
 	t.Helper()
 
+	logger := golog.NewTestLogger(t)
 	_, apiURL := tester.SetupFakeAPI(t)
 
 	providerServer := NewProviderServer("localhost", "23457")
@@ -415,7 +420,7 @@ func testServeWithProxy(t *testing.T, header, extra *testProxyHeader, expectErro
 	privateKey, err := rsa.GenerateKey(rand.Reader, 512)
 	require.NoError(t, err, "Could not generate test key")
 
-	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := api.New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	solver := NewChallenge(core, validate, providerServer)

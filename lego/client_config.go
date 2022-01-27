@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/registration"
 )
@@ -46,6 +47,7 @@ type Config struct {
 	UserAgent   string
 	HTTPClient  *http.Client
 	Certificate CertificateConfig
+	Logger      golog.Logger
 }
 
 func NewConfig(user registration.User) *Config {

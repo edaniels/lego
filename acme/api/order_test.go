@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/acme"
 	"github.com/go-acme/lego/v4/platform/tester"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,7 @@ import (
 )
 
 func TestOrderService_New(t *testing.T) {
+	logger := golog.NewTestLogger(t)
 	mux, apiURL := tester.SetupFakeAPI(t)
 
 	// small value keeps test fast
@@ -51,7 +53,7 @@ func TestOrderService_New(t *testing.T) {
 		}
 	})
 
-	core, err := New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey)
+	core, err := New(http.DefaultClient, "lego-test", apiURL+"/dir", "", privateKey, logger)
 	require.NoError(t, err)
 
 	order, err := core.Orders.New([]string{"example.com"})

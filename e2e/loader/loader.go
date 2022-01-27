@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/platform/wait"
 )
 
@@ -151,7 +152,7 @@ func pebbleHealthCheck(options *CmdOption) {
 		}
 
 		return true, nil
-	})
+	}, golog.Global)
 	if err != nil {
 		panic(err)
 	}

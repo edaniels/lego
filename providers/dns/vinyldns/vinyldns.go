@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/edaniels/golog"
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/go-acme/lego/v4/platform/wait"
@@ -275,6 +276,7 @@ func (d *DNSProvider) waitForChanges(operation string, resp *vinyldns.RecordSetU
 			return false, fmt.Errorf("waiting operation: %s, zoneID: %s, recordsetID: %s, changeID: %s",
 				operation, resp.Zone.ID, resp.RecordSet.ID, resp.ChangeID)
 		},
+		golog.Global,
 	)
 }
 

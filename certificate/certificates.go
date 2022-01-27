@@ -469,6 +469,7 @@ func (c *Certifier) Renew(
 		if err != nil {
 			return nil, err
 		}
+		println("got private key :)")
 	}
 
 	query := ObtainRequest{

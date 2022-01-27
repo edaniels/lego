@@ -405,6 +405,13 @@ func (c *Certifier) RevokeWithReason(ctx context.Context, cert []byte, reason *u
 	return c.core.Certificates.Revoke(ctx, revokeMsg)
 }
 
+type RenewRequest struct {
+	// notAfter (optional, string):
+	// The requested value of the notAfter field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotAfter string
+}
+
 // Renew takes a Resource and tries to renew the certificate.
 //
 // If the renewal process succeeds, the new certificate will be returned in a new CertResource.
@@ -415,7 +422,13 @@ func (c *Certifier) RevokeWithReason(ctx context.Context, cert []byte, reason *u
 // If bundle is true, the []byte contains both the issuer certificate and your issued certificate as a bundle.
 //
 // For private key reuse the PrivateKey property of the passed in Resource should be non-nil.
-func (c *Certifier) Renew(ctx context.Context, certRes Resource, bundle, mustStaple bool, preferredChain string) (*Resource, error) {
+func (c *Certifier) Renew(
+	ctx context.Context,
+	certRes Resource,
+	bundle, mustStaple bool,
+	preferredChain string,
+	request RenewRequest,
+) (*Resource, error) {
 	// Input certificate is PEM encoded.
 	// Decode it here as we may need the decoded cert later on in the renewal process.
 	// The input may be a bundle or a single certificate.
@@ -446,6 +459,7 @@ func (c *Certifier) Renew(ctx context.Context, certRes Resource, bundle, mustSta
 			CSR:            csr,
 			Bundle:         bundle,
 			PreferredChain: preferredChain,
+			NotAfter:       request.NotAfter,
 		})
 	}
 
@@ -463,6 +477,7 @@ func (c *Certifier) Renew(ctx context.Context, certRes Resource, bundle, mustSta
 		PrivateKey:     privateKey,
 		MustStaple:     mustStaple,
 		PreferredChain: preferredChain,
+		NotAfter:       request.NotAfter,
 	}
 	return c.Obtain(ctx, query)
 }

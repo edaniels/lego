@@ -2,6 +2,7 @@ package dns01
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -21,9 +22,9 @@ func NewDNSProviderManual() (*DNSProviderManual, error) {
 
 // Present prints instructions for manually creating the TXT record.
 func (*DNSProviderManual) Present(domain, token, keyAuth string) error {
-	fqdn, value := GetRecord(domain, keyAuth)
+	fqdn, value := GetRecord(context.TODO(), domain, keyAuth)
 
-	authZone, err := FindZoneByFqdn(fqdn)
+	authZone, err := FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return err
 	}
@@ -39,9 +40,9 @@ func (*DNSProviderManual) Present(domain, token, keyAuth string) error {
 
 // CleanUp prints instructions for manually removing the TXT record.
 func (*DNSProviderManual) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := GetRecord(domain, keyAuth)
+	fqdn, _ := GetRecord(context.TODO(), domain, keyAuth)
 
-	authZone, err := FindZoneByFqdn(fqdn)
+	authZone, err := FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return err
 	}

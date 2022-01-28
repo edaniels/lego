@@ -2,6 +2,7 @@
 package transip
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -92,9 +93,9 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return err
 	}
@@ -121,9 +122,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return err
 	}

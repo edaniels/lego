@@ -2,6 +2,7 @@
 package gandiv5
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -67,7 +68,7 @@ type DNSProvider struct {
 	inProgressFQDNs map[string]inProgressInfo
 	inProgressMu    sync.Mutex
 	// findZoneByFqdn determines the DNS zone of an fqdn. It is overridden during tests.
-	findZoneByFqdn func(fqdn string) (string, error)
+	findZoneByFqdn func(ctx context.Context, fqdn string) (string, error)
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for Gandi.
@@ -111,10 +112,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	// find authZone
-	authZone, err := d.findZoneByFqdn(fqdn)
+	authZone, err := d.findZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("gandiv5: findZoneByFqdn failure: %w", err)
 	}
@@ -147,7 +148,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	// acquire lock and retrieve authZone
 	d.inProgressMu.Lock()

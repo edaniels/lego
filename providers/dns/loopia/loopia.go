@@ -2,6 +2,7 @@
 package loopia
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -68,7 +69,7 @@ type DNSProvider struct {
 	inProgressInfo map[string]int
 	inProgressMu   sync.Mutex
 
-	findZoneByFqdn func(fqdn string) (string, error)
+	findZoneByFqdn func(ctx context.Context, fqdn string) (string, error)
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for Loopia.
@@ -124,7 +125,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	subdomain, authZone := d.splitDomain(fqdn)
 
@@ -153,7 +154,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	subdomain, authZone := d.splitDomain(fqdn)
 
@@ -183,7 +184,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 }
 
 func (d *DNSProvider) splitDomain(fqdn string) (string, string) {
-	authZone, _ := d.findZoneByFqdn(fqdn)
+	authZone, _ := d.findZoneByFqdn(context.TODO(), fqdn)
 	authZone = dns01.UnFqdn(authZone)
 
 	subdomain := strings.TrimSuffix(dns01.UnFqdn(fqdn), "."+authZone)

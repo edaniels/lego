@@ -2,6 +2,7 @@
 package namecheap
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -249,7 +250,7 @@ func newChallenge(domain, keyAuth string) (*challenge, error) {
 		host = strings.Join(parts[:longest-1], ".")
 	}
 
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	return &challenge{
 		domain:   domain,

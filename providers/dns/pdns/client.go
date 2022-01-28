@@ -1,6 +1,7 @@
 package pdns
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -61,7 +62,7 @@ type apiVersion struct {
 }
 
 func (d *DNSProvider) getHostedZone(fqdn string) (*hostedZone, error) {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return nil, err
 	}

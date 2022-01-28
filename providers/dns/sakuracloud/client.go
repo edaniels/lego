@@ -1,6 +1,7 @@
 package sakuracloud
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -62,7 +63,7 @@ func (d *DNSProvider) cleanupTXTRecord(fqdn, domain string) error {
 }
 
 func (d *DNSProvider) getHostedZone(domain string) (*sacloud.DNS, error) {
-	authZone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(domain))
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(domain))
 	if err != nil {
 		return nil, err
 	}

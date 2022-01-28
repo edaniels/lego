@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -32,7 +33,7 @@ type apiError struct {
 }
 
 func (d *DNSProvider) removeTxtRecord(domain string, recordID int) error {
-	authZone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(domain))
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(domain))
 	if err != nil {
 		return fmt.Errorf("could not determine zone for domain %q: %w", domain, err)
 	}
@@ -57,7 +58,7 @@ func (d *DNSProvider) removeTxtRecord(domain string, recordID int) error {
 }
 
 func (d *DNSProvider) addTxtRecord(fqdn, value string) (*txtRecordResponse, error) {
-	authZone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(fqdn))
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(fqdn))
 	if err != nil {
 		return nil, fmt.Errorf("could not determine zone for domain %q: %w", fqdn, err)
 	}

@@ -1,6 +1,7 @@
 package netcup
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -161,9 +162,9 @@ func TestLivePresentAndCleanup(t *testing.T) {
 	p, err := NewDNSProvider()
 	require.NoError(t, err)
 
-	fqdn, _ := dns01.GetRecord(envTest.GetDomain(), "123d==")
+	fqdn, _ := dns01.GetRecord(context.Background(), envTest.GetDomain(), "123d==")
 
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	require.NoError(t, err, "error finding DNSZone")
 
 	zone = dns01.UnFqdn(zone)

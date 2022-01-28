@@ -2,6 +2,7 @@
 package dnsmadeeasy
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -111,9 +112,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domainName, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domainName, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domainName, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("dnsmadeeasy: unable to find zone for %s: %w", fqdn, err)
 	}
@@ -137,9 +138,9 @@ func (d *DNSProvider) Present(domainName, token, keyAuth string) error {
 
 // CleanUp removes the TXT records matching the specified parameters.
 func (d *DNSProvider) CleanUp(domainName, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domainName, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domainName, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("dnsmadeeasy: unable to find zone for %s: %w", fqdn, err)
 	}

@@ -2,6 +2,7 @@
 package dyn
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -87,9 +88,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}
@@ -122,9 +123,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("dyn: %w", err)
 	}

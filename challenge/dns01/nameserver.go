@@ -1,6 +1,7 @@
 package dns01
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -94,15 +95,15 @@ func ParseNameservers(servers []string) []string {
 }
 
 // lookupNameservers returns the authoritative nameservers for the given fqdn.
-func lookupNameservers(fqdn string) ([]string, error) {
+func lookupNameservers(ctx context.Context, fqdn string) ([]string, error) {
 	var authoritativeNss []string
 
-	zone, err := FindZoneByFqdn(fqdn)
+	zone, err := FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return nil, fmt.Errorf("could not determine the zone: %w", err)
 	}
 
-	r, err := dnsQuery(zone, dns.TypeNS, recursiveNameservers, true)
+	r, err := dnsQuery(ctx, zone, dns.TypeNS, recursiveNameservers, true)
 	if err != nil {
 		return nil, err
 	}
@@ -121,14 +122,14 @@ func lookupNameservers(fqdn string) ([]string, error) {
 
 // FindPrimaryNsByFqdn determines the primary nameserver of the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
-func FindPrimaryNsByFqdn(fqdn string) (string, error) {
-	return FindPrimaryNsByFqdnCustom(fqdn, recursiveNameservers)
+func FindPrimaryNsByFqdn(ctx context.Context, fqdn string) (string, error) {
+	return FindPrimaryNsByFqdnCustom(ctx, fqdn, recursiveNameservers)
 }
 
 // FindPrimaryNsByFqdnCustom determines the primary nameserver of the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
-func FindPrimaryNsByFqdnCustom(fqdn string, nameservers []string) (string, error) {
-	soa, err := lookupSoaByFqdn(fqdn, nameservers)
+func FindPrimaryNsByFqdnCustom(ctx context.Context, fqdn string, nameservers []string) (string, error) {
+	soa, err := lookupSoaByFqdn(ctx, fqdn, nameservers)
 	if err != nil {
 		return "", err
 	}
@@ -137,21 +138,21 @@ func FindPrimaryNsByFqdnCustom(fqdn string, nameservers []string) (string, error
 
 // FindZoneByFqdn determines the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
-func FindZoneByFqdn(fqdn string) (string, error) {
-	return FindZoneByFqdnCustom(fqdn, recursiveNameservers)
+func FindZoneByFqdn(ctx context.Context, fqdn string) (string, error) {
+	return FindZoneByFqdnCustom(ctx, fqdn, recursiveNameservers)
 }
 
 // FindZoneByFqdnCustom determines the zone apex for the given fqdn
 // by recursing up the domain labels until the nameserver returns a SOA record in the answer section.
-func FindZoneByFqdnCustom(fqdn string, nameservers []string) (string, error) {
-	soa, err := lookupSoaByFqdn(fqdn, nameservers)
+func FindZoneByFqdnCustom(ctx context.Context, fqdn string, nameservers []string) (string, error) {
+	soa, err := lookupSoaByFqdn(ctx, fqdn, nameservers)
 	if err != nil {
 		return "", err
 	}
 	return soa.zone, nil
 }
 
-func lookupSoaByFqdn(fqdn string, nameservers []string) (*soaCacheEntry, error) {
+func lookupSoaByFqdn(ctx context.Context, fqdn string, nameservers []string) (*soaCacheEntry, error) {
 	muFqdnSoaCache.Lock()
 	defer muFqdnSoaCache.Unlock()
 
@@ -160,7 +161,7 @@ func lookupSoaByFqdn(fqdn string, nameservers []string) (*soaCacheEntry, error) 
 		return ent, nil
 	}
 
-	ent, err := fetchSoaByFqdn(fqdn, nameservers)
+	ent, err := fetchSoaByFqdn(ctx, fqdn, nameservers)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +170,7 @@ func lookupSoaByFqdn(fqdn string, nameservers []string) (*soaCacheEntry, error) 
 	return ent, nil
 }
 
-func fetchSoaByFqdn(fqdn string, nameservers []string) (*soaCacheEntry, error) {
+func fetchSoaByFqdn(ctx context.Context, fqdn string, nameservers []string) (*soaCacheEntry, error) {
 	var err error
 	var in *dns.Msg
 
@@ -177,7 +178,7 @@ func fetchSoaByFqdn(fqdn string, nameservers []string) (*soaCacheEntry, error) {
 	for _, index := range labelIndexes {
 		domain := fqdn[index:]
 
-		in, err = dnsQuery(domain, dns.TypeSOA, nameservers, true)
+		in, err = dnsQuery(ctx, domain, dns.TypeSOA, nameservers, true)
 		if err != nil {
 			continue
 		}
@@ -225,14 +226,14 @@ func dnsMsgContainsCNAME(msg *dns.Msg) bool {
 	return false
 }
 
-func dnsQuery(fqdn string, rtype uint16, nameservers []string, recursive bool) (*dns.Msg, error) {
+func dnsQuery(ctx context.Context, fqdn string, rtype uint16, nameservers []string, recursive bool) (*dns.Msg, error) {
 	m := createDNSMsg(fqdn, rtype, recursive)
 
 	var in *dns.Msg
 	var err error
 
 	for _, ns := range nameservers {
-		in, err = sendDNSQuery(m, ns)
+		in, err = sendDNSQuery(ctx, m, ns)
 		if err == nil && len(in.Answer) > 0 {
 			break
 		}
@@ -252,14 +253,14 @@ func createDNSMsg(fqdn string, rtype uint16, recursive bool) *dns.Msg {
 	return m
 }
 
-func sendDNSQuery(m *dns.Msg, ns string) (*dns.Msg, error) {
+func sendDNSQuery(ctx context.Context, m *dns.Msg, ns string) (*dns.Msg, error) {
 	udp := &dns.Client{Net: "udp", Timeout: dnsTimeout}
 	in, _, err := udp.Exchange(m, ns)
 
 	if in != nil && in.Truncated {
 		tcp := &dns.Client{Net: "tcp", Timeout: dnsTimeout}
 		// If the TCP request succeeds, the err will reset to nil
-		in, _, err = tcp.Exchange(m, ns)
+		in, _, err = tcp.ExchangeContext(ctx, m, ns)
 	}
 
 	return in, err

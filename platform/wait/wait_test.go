@@ -1,6 +1,7 @@
 package wait
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ func TestForTimeout(t *testing.T) {
 	logger := golog.NewTestLogger(t)
 	c := make(chan error)
 	go func() {
-		c <- For("", 3*time.Second, 1*time.Second, func() (bool, error) {
+		c <- For(context.Background(), "", 3*time.Second, 1*time.Second, func() (bool, error) {
 			return false, nil
 		}, logger)
 	}()

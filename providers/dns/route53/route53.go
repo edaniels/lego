@@ -2,6 +2,7 @@
 package route53
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -127,7 +128,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	hostedZoneID, err := d.getHostedZoneID(fqdn)
 	if err != nil {
@@ -168,7 +169,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	hostedZoneID, err := d.getHostedZoneID(fqdn)
 	if err != nil {
@@ -217,7 +218,7 @@ func (d *DNSProvider) changeRecord(action, hostedZoneID string, recordSet *route
 
 	changeID := resp.ChangeInfo.Id
 
-	return wait.For("route53", d.config.PropagationTimeout, d.config.PollingInterval, func() (bool, error) {
+	return wait.For(context.TODO(), "route53", d.config.PropagationTimeout, d.config.PollingInterval, func() (bool, error) {
 		reqParams := &route53.GetChangeInput{Id: changeID}
 
 		resp, err := d.client.GetChange(reqParams)
@@ -264,7 +265,7 @@ func (d *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
 		return d.config.HostedZoneID, nil
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return "", err
 	}

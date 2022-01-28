@@ -2,6 +2,7 @@
 package yandex
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -91,7 +92,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	rootDomain, subDomain, err := splitDomain(fqdn)
 	if err != nil {
@@ -116,7 +117,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	rootDomain, subDomain, err := splitDomain(fqdn)
 	if err != nil {

@@ -2,6 +2,7 @@
 package gandi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -70,7 +71,7 @@ type DNSProvider struct {
 	inProgressMu        sync.Mutex
 	config              *Config
 	// findZoneByFqdn determines the DNS zone of an fqdn. It is overridden during tests.
-	findZoneByFqdn func(fqdn string) (string, error)
+	findZoneByFqdn func(ctx context.Context, fqdn string) (string, error)
 }
 
 // NewDNSProvider returns a DNSProvider instance configured for Gandi.
@@ -113,14 +114,14 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 // does this by creating and activating a new temporary Gandi DNS
 // zone. This new zone contains the TXT record.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	if d.config.TTL < minTTL {
 		d.config.TTL = minTTL // 300 is gandi minimum value for ttl
 	}
 
 	// find authZone and Gandi zone_id for fqdn
-	authZone, err := d.findZoneByFqdn(fqdn)
+	authZone, err := d.findZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("gandi: findZoneByFqdn failure: %w", err)
 	}
@@ -190,7 +191,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 // parameters. It does this by restoring the old Gandi DNS zone and
 // removing the temporary one created by Present.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	// acquire lock and retrieve zoneID, newZoneID and authZone
 	d.inProgressMu.Lock()

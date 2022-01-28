@@ -103,9 +103,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	zoneNameOrID, err1 := dns01.FindZoneByFqdn(dns01.ToFqdn(domain))
+	zoneNameOrID, err1 := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(domain))
 	if err1 != nil {
 		return fmt.Errorf("oraclecloud: could not find zone for domain %q and fqdn %q : %w", domain, fqdn, err1)
 	}
@@ -138,9 +138,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	zoneNameOrID, err1 := dns01.FindZoneByFqdn(dns01.ToFqdn(domain))
+	zoneNameOrID, err1 := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(domain))
 	if err1 != nil {
 		return fmt.Errorf("oraclecloud: could not find zone for domain %q and fqdn %q : %w", domain, fqdn, err1)
 	}

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -51,7 +52,7 @@ func NewClient(authID, subAuthID, authPassword string) (*Client, error) {
 
 // GetZone Get domain name information for a FQDN.
 func (c *Client) GetZone(authFQDN string) (*Zone, error) {
-	authZone, err := dns01.FindZoneByFqdn(authFQDN)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), authFQDN)
 	if err != nil {
 		return nil, err
 	}

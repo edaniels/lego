@@ -2,6 +2,7 @@
 package liquidweb
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -123,7 +124,7 @@ func (d *DNSProvider) Timeout() (time.Duration, time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	params := &network.DNSRecordParams{
 		Name:  dns01.UnFqdn(fqdn),

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -71,7 +72,7 @@ type Client struct {
 
 // GetDomainInformation Get domain name information for a FQDN.
 func (c *Client) GetDomainInformation(fqdn string) (*Data, error) {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return nil, err
 	}

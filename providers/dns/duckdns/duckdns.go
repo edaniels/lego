@@ -3,6 +3,7 @@
 package duckdns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -79,7 +80,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	_, txtRecord := dns01.GetRecord(domain, keyAuth)
+	_, txtRecord := dns01.GetRecord(context.TODO(), domain, keyAuth)
 	return d.updateTxtRecord(domain, d.config.Token, txtRecord, false)
 }
 

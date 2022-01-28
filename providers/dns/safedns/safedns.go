@@ -2,6 +2,7 @@
 package safedns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -100,9 +101,9 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(fqdn))
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(fqdn))
 	if err != nil {
 		return fmt.Errorf("safedns: could not determine zone for domain: %q: %w", fqdn, err)
 	}
@@ -128,9 +129,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record previously created.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("safedns: %w", err)
 	}

@@ -1,6 +1,7 @@
 package dns01
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,7 +36,7 @@ func TestCheckDNSPropagation(t *testing.T) {
 
 			check := newPreCheck()
 
-			ok, err := check.checkDNSPropagation(test.fqdn, test.value)
+			ok, err := check.checkDNSPropagation(context.Background(), test.fqdn, test.value)
 			if test.expectError {
 				assert.Errorf(t, err, "PreCheckDNS must failed for %s", test.fqdn)
 				assert.False(t, ok, "PreCheckDNS must failed for %s", test.fqdn)
@@ -74,7 +75,7 @@ func TestCheckAuthoritativeNss(t *testing.T) {
 			t.Parallel()
 			ClearFqdnCache()
 
-			ok, _ := checkAuthoritativeNss(test.fqdn, test.value, test.ns)
+			ok, _ := checkAuthoritativeNss(context.Background(), test.fqdn, test.value, test.ns)
 			assert.Equal(t, test.expected, ok, test.fqdn)
 		})
 	}
@@ -109,7 +110,7 @@ func TestCheckAuthoritativeNssErr(t *testing.T) {
 			t.Parallel()
 			ClearFqdnCache()
 
-			_, err := checkAuthoritativeNss(test.fqdn, test.value, test.ns)
+			_, err := checkAuthoritativeNss(context.Background(), test.fqdn, test.value, test.ns)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), test.error)
 		})

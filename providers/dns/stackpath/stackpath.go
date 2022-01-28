@@ -118,7 +118,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("stackpath: %w", err)
 	}
 
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	record := Record{
 		Name: extractRecordName(fqdn, zone.Domain),
@@ -137,7 +137,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("stackpath: %w", err)
 	}
 
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 	recordName := extractRecordName(fqdn, zone.Domain)
 
 	records, err := d.getZoneRecords(recordName, zone)

@@ -1,6 +1,7 @@
 package dns01
 
 import (
+	"context"
 	"sort"
 	"testing"
 
@@ -32,7 +33,7 @@ func TestLookupNameserversOK(t *testing.T) {
 		t.Run(test.fqdn, func(t *testing.T) {
 			t.Parallel()
 
-			nss, err := lookupNameservers(test.fqdn)
+			nss, err := lookupNameservers(context.Background(), test.fqdn)
 			require.NoError(t, err)
 
 			sort.Strings(nss)
@@ -61,7 +62,7 @@ func TestLookupNameserversErr(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := lookupNameservers(test.fqdn)
+			_, err := lookupNameservers(context.Background(), test.fqdn)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), test.error)
 		})
@@ -139,7 +140,7 @@ func TestFindZoneByFqdnCustom(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			ClearFqdnCache()
 
-			zone, err := FindZoneByFqdnCustom(test.fqdn, test.nameservers)
+			zone, err := FindZoneByFqdnCustom(context.Background(), test.fqdn, test.nameservers)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), test.expectedError)
@@ -156,7 +157,7 @@ func TestFindPrimayNsByFqdnCustom(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			ClearFqdnCache()
 
-			ns, err := FindPrimaryNsByFqdnCustom(test.fqdn, test.nameservers)
+			ns, err := FindPrimaryNsByFqdnCustom(context.Background(), test.fqdn, test.nameservers)
 			if test.expectedError != "" {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), test.expectedError)

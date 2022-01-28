@@ -1,6 +1,7 @@
 package checkdomain
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -225,7 +226,7 @@ func Test_deleteTXTRecord(t *testing.T) {
 		}
 	})
 
-	fqdn, _ := dns01.GetRecord(domainName, "abc")
+	fqdn, _ := dns01.GetRecord(context.TODO(), domainName, "abc")
 	err := prd.deleteTXTRecord(1, fqdn, recordValue)
 	require.NoError(t, err)
 }

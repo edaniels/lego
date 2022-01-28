@@ -1,6 +1,7 @@
 package dns01
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
@@ -9,11 +10,11 @@ import (
 )
 
 // PreCheckFunc checks DNS propagation before notifying ACME that the DNS challenge is ready.
-type PreCheckFunc func(fqdn, value string) (bool, error)
+type PreCheckFunc func(ctx context.Context, fqdn, value string) (bool, error)
 
 // WrapPreCheckFunc wraps a PreCheckFunc in order to do extra operations before or after
 // the main check, put it in a loop, etc.
-type WrapPreCheckFunc func(domain, fqdn, value string, check PreCheckFunc) (bool, error)
+type WrapPreCheckFunc func(ctx context.Context, domain, fqdn, value string, check PreCheckFunc) (bool, error)
 
 // WrapPreCheck Allow to define checks before notifying ACME that the DNS challenge is ready.
 func WrapPreCheck(wrap WrapPreCheckFunc) ChallengeOption {
@@ -43,18 +44,18 @@ func newPreCheck() preCheck {
 	}
 }
 
-func (p preCheck) call(domain, fqdn, value string) (bool, error) {
+func (p preCheck) call(ctx context.Context, domain, fqdn, value string) (bool, error) {
 	if p.checkFunc == nil {
-		return p.checkDNSPropagation(fqdn, value)
+		return p.checkDNSPropagation(ctx, fqdn, value)
 	}
 
-	return p.checkFunc(domain, fqdn, value, p.checkDNSPropagation)
+	return p.checkFunc(ctx, domain, fqdn, value, p.checkDNSPropagation)
 }
 
 // checkDNSPropagation checks if the expected TXT record has been propagated to all authoritative nameservers.
-func (p preCheck) checkDNSPropagation(fqdn, value string) (bool, error) {
+func (p preCheck) checkDNSPropagation(ctx context.Context, fqdn, value string) (bool, error) {
 	// Initial attempt to resolve at the recursive NS
-	r, err := dnsQuery(fqdn, dns.TypeTXT, recursiveNameservers, true)
+	r, err := dnsQuery(ctx, fqdn, dns.TypeTXT, recursiveNameservers, true)
 	if err != nil {
 		return false, err
 	}
@@ -67,18 +68,18 @@ func (p preCheck) checkDNSPropagation(fqdn, value string) (bool, error) {
 		fqdn = updateDomainWithCName(r, fqdn)
 	}
 
-	authoritativeNss, err := lookupNameservers(fqdn)
+	authoritativeNss, err := lookupNameservers(ctx, fqdn)
 	if err != nil {
 		return false, err
 	}
 
-	return checkAuthoritativeNss(fqdn, value, authoritativeNss)
+	return checkAuthoritativeNss(ctx, fqdn, value, authoritativeNss)
 }
 
 // checkAuthoritativeNss queries each of the given nameservers for the expected TXT record.
-func checkAuthoritativeNss(fqdn, value string, nameservers []string) (bool, error) {
+func checkAuthoritativeNss(ctx context.Context, fqdn, value string, nameservers []string) (bool, error) {
 	for _, ns := range nameservers {
-		r, err := dnsQuery(fqdn, dns.TypeTXT, []string{net.JoinHostPort(ns, "53")}, false)
+		r, err := dnsQuery(ctx, fqdn, dns.TypeTXT, []string{net.JoinHostPort(ns, "53")}, false)
 		if err != nil {
 			return false, err
 		}

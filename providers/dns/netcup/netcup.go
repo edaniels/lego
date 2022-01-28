@@ -2,6 +2,7 @@
 package netcup
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -92,9 +93,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domainName, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domainName, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domainName, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("netcup: failed to find DNSZone, %w", err)
 	}
@@ -139,9 +140,9 @@ func (d *DNSProvider) Present(domainName, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domainName, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domainName, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domainName, keyAuth)
 
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("netcup: failed to find DNSZone, %w", err)
 	}

@@ -2,6 +2,7 @@
 package checkdomain
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -111,7 +112,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("checkdomain: %w", err)
 	}
 
-	name, value := dns01.GetRecord(domain, keyAuth)
+	name, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err = d.createRecord(domainID, &Record{
 		Name:  name,
@@ -139,7 +140,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("checkdomain: %w", err)
 	}
 
-	name, value := dns01.GetRecord(domain, keyAuth)
+	name, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err = d.deleteTXTRecord(domainID, name, value)
 	if err != nil {

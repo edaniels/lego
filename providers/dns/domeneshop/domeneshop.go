@@ -2,6 +2,7 @@
 package domeneshop
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -94,7 +95,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	zone, host, err := d.splitDomain(fqdn)
 	if err != nil {
@@ -116,7 +117,7 @@ func (d *DNSProvider) Present(domain, _, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	zone, host, err := d.splitDomain(fqdn)
 	if err != nil {
@@ -137,7 +138,7 @@ func (d *DNSProvider) CleanUp(domain, _, keyAuth string) error {
 
 // splitDomain splits the hostname from the authoritative zone, and returns both parts (non-fqdn).
 func (d *DNSProvider) splitDomain(fqdn string) (string, string, error) {
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return "", "", err
 	}

@@ -309,7 +309,7 @@ func (c *Certifier) getForCSR(ctx context.Context, domains []string, order acme.
 		timeout = 30 * time.Second
 	}
 
-	err = wait.For("certificate", timeout, timeout/60, func() (bool, error) {
+	err = wait.For(ctx, "certificate", timeout, timeout/60, func() (bool, error) {
 		ord, errW := c.core.Orders.Get(ctx, order.Location)
 		if errW != nil {
 			return false, errW

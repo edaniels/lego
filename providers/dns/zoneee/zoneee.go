@@ -2,6 +2,7 @@
 package zoneee
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -105,7 +106,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	record := txtRecord{
 		Name:        fqdn[:len(fqdn)-1],
@@ -126,7 +127,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record previously created.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	_, value := dns01.GetRecord(domain, keyAuth)
+	_, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	authZone, err := getHostedZone(domain)
 	if err != nil {
@@ -157,7 +158,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 }
 
 func getHostedZone(domain string) (string, error) {
-	authZone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(domain))
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(domain))
 	if err != nil {
 		return "", err
 	}

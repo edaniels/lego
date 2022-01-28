@@ -114,7 +114,7 @@ func (c *Challenge) Solve(ctx context.Context, authz acme.Authorization) error {
 		return err
 	}
 
-	fqdn, value := GetRecord(authz.Identifier.Value, keyAuth)
+	fqdn, value := GetRecord(ctx, authz.Identifier.Value, keyAuth)
 
 	var timeout, interval time.Duration
 	switch provider := c.provider.(type) {
@@ -128,9 +128,12 @@ func (c *Challenge) Solve(ctx context.Context, authz acme.Authorization) error {
 
 	time.Sleep(interval)
 
-	err = wait.For("propagation", timeout, interval, func() (bool, error) {
-		stop, errP := c.preCheck.call(domain, fqdn, value)
+	err = wait.For(ctx, "propagation", timeout, interval, func() (bool, error) {
+		stop, errP := c.preCheck.call(ctx, domain, fqdn, value)
 		if !stop || errP != nil {
+			if errP != nil {
+				c.core.Logger.Debugw("acme: error while waiting for DNS record propagation.", "domain", domain, "error", errP)
+			}
 			c.core.Logger.Infof("[%s] acme: Waiting for DNS record propagation.", domain)
 		}
 		return stop, errP
@@ -172,14 +175,14 @@ type sequential interface {
 }
 
 // GetRecord returns a DNS record which will fulfill the `dns-01` challenge.
-func GetRecord(domain, keyAuth string) (fqdn, value string) {
+func GetRecord(ctx context.Context, domain, keyAuth string) (fqdn, value string) {
 	keyAuthShaBytes := sha256.Sum256([]byte(keyAuth))
 	// base64URL encoding without padding
 	value = base64.RawURLEncoding.EncodeToString(keyAuthShaBytes[:sha256.Size])
 	fqdn = fmt.Sprintf("_acme-challenge.%s.", domain)
 
 	if ok, _ := strconv.ParseBool(os.Getenv("LEGO_EXPERIMENTAL_CNAME_SUPPORT")); ok {
-		r, err := dnsQuery(fqdn, dns.TypeCNAME, recursiveNameservers, true)
+		r, err := dnsQuery(ctx, fqdn, dns.TypeCNAME, recursiveNameservers, true)
 		// Check if the domain has CNAME then return that
 		if err == nil && r.Rcode == dns.RcodeSuccess {
 			fqdn = updateDomainWithCName(r, fqdn)

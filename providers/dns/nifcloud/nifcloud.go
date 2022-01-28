@@ -2,6 +2,7 @@
 package nifcloud
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -98,7 +99,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err := d.changeRecord("CREATE", fqdn, value, d.config.TTL)
 	if err != nil {
@@ -109,7 +110,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err := d.changeRecord("DELETE", fqdn, value, d.config.TTL)
 	if err != nil {
@@ -153,7 +154,7 @@ func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 		},
 	}
 
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return fmt.Errorf("failed to find zone: %w", err)
 	}
@@ -165,7 +166,7 @@ func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 
 	statusID := resp.ChangeInfo.ID
 
-	return wait.For("nifcloud", 120*time.Second, 4*time.Second, func() (bool, error) {
+	return wait.For(context.TODO(), "nifcloud", 120*time.Second, 4*time.Second, func() (bool, error) {
 		resp, err := d.client.GetChange(statusID)
 		if err != nil {
 			return false, fmt.Errorf("failed to query change status: %w", err)

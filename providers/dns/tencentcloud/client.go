@@ -1,6 +1,7 @@
 package tencentcloud
 
 import (
+	"context"
 	"strings"
 
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -14,7 +15,7 @@ type domainData struct {
 }
 
 func getDomainData(fqdn string) (*domainData, error) {
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return nil, err
 	}

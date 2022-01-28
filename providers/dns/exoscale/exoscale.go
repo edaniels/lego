@@ -102,7 +102,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	ctx := context.Background()
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 	zone, recordName, err := d.FindZoneAndRecordName(fqdn, domain)
 	if err != nil {
 		return err
@@ -146,7 +146,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 // CleanUp removes the record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	ctx := context.Background()
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 	zone, recordName, err := d.FindZoneAndRecordName(fqdn, domain)
 	if err != nil {
 		return err
@@ -191,7 +191,7 @@ func (d *DNSProvider) FindExistingRecordID(zone, recordName string) (int64, erro
 
 // FindZoneAndRecordName Extract DNS zone and DNS entry name.
 func (d *DNSProvider) FindZoneAndRecordName(fqdn, domain string) (string, string, error) {
-	zone, err := dns01.FindZoneByFqdn(dns01.ToFqdn(domain))
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), dns01.ToFqdn(domain))
 	if err != nil {
 		return "", "", err
 	}

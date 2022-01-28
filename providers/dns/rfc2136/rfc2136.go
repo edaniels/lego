@@ -2,6 +2,7 @@
 package rfc2136
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -127,7 +128,7 @@ func (d *DNSProvider) Sequential() time.Duration {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err := d.changeRecord("INSERT", fqdn, value, d.config.TTL)
 	if err != nil {
@@ -138,7 +139,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err := d.changeRecord("REMOVE", fqdn, value, d.config.TTL)
 	if err != nil {
@@ -149,7 +150,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 	// Find the zone for the given fqdn
-	zone, err := dns01.FindZoneByFqdnCustom(fqdn, []string{d.config.Nameserver})
+	zone, err := dns01.FindZoneByFqdnCustom(context.TODO(), fqdn, []string{d.config.Nameserver})
 	if err != nil {
 		return err
 	}

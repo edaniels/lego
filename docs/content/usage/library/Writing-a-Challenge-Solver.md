@@ -59,13 +59,13 @@ For DNS-01, we'll just use `domain` and `keyAuth`.
 
 ```go
 func (d *DNSProviderBestDNS) Present(domain, token, keyAuth string) error {
-    fqdn, value := dns01.GetRecord(domain, keyAuth)
+    fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
     // make API request to set a TXT record on fqdn with value and TTL
     return nil
 }
 ```
 
-After calling `dns01.GetRecord(domain, keyAuth)`, we now have the information we need to make our API request and set the TXT record:
+After calling `dns01.GetRecord(context.TODO(), domain, keyAuth)`, we now have the information we need to make our API request and set the TXT record:
 - `fqdn` is the fully qualified domain name on which to set the TXT record.
 - `value` is the record's value to set on the record.
 

@@ -4,6 +4,7 @@
 package vscale
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -101,7 +102,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record to fulfill DNS-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	domainObj, err := d.client.GetDomainByName(domain)
 	if err != nil {
@@ -124,7 +125,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes a TXT record used for DNS-01 challenge.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 	recordName := dns01.UnFqdn(fqdn)
 
 	domainObj, err := d.client.GetDomainByName(domain)

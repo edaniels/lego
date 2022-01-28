@@ -86,7 +86,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present updates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, _, keyAuth string) error {
-	_, txtRecord := dns01.GetRecord(domain, keyAuth)
+	_, txtRecord := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err := d.client.UpdateTxtRecord(context.Background(), domain, txtRecord)
 	if err != nil {

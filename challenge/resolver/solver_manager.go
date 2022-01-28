@@ -127,7 +127,7 @@ func validate(ctx context.Context, core *api.Core, domain string, chlg acme.Chal
 		return errors.New("the server didn't respond to our request")
 	}
 
-	return backoff.Retry(operation, bo)
+	return backoff.Retry(operation, backoff.WithContext(bo, ctx))
 }
 
 func checkChallengeStatus(chlng acme.ExtendedChallenge) (bool, error) {

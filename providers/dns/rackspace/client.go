@@ -2,6 +2,7 @@ package rackspace
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -83,7 +84,7 @@ type Record struct {
 // getHostedZoneID performs a lookup to get the DNS zone which needs
 // modifying for a given FQDN.
 func (d *DNSProvider) getHostedZoneID(fqdn string) (string, error) {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return "", err
 	}

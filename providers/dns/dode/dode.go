@@ -2,6 +2,7 @@
 package dode
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -78,13 +79,13 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, txtRecord := dns01.GetRecord(domain, keyAuth)
+	fqdn, txtRecord := dns01.GetRecord(context.TODO(), domain, keyAuth)
 	return d.updateTxtRecord(fqdn, d.config.Token, txtRecord, false)
 }
 
 // CleanUp clears TXT record.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 	return d.updateTxtRecord(fqdn, d.config.Token, "", true)
 }
 

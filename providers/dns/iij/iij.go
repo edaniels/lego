@@ -2,6 +2,7 @@
 package iij
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -87,7 +88,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 
 // Present creates a TXT record using the specified parameters.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	_, value := dns01.GetRecord(domain, keyAuth)
+	_, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err := d.addTxtRecord(domain, value)
 	if err != nil {
@@ -98,7 +99,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	_, value := dns01.GetRecord(domain, keyAuth)
+	_, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	err := d.deleteTxtRecord(domain, value)
 	if err != nil {

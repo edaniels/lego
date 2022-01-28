@@ -2,6 +2,7 @@
 package vinyldns
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -97,7 +98,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	existingRecord, err := d.getRecordSet(fqdn)
 	if err != nil {
@@ -134,7 +135,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	existingRecord, err := d.getRecordSet(fqdn)
 	if err != nil {
@@ -262,7 +263,7 @@ func (d *DNSProvider) deleteRecordSet(existingRecord *vinyldns.RecordSet) error 
 }
 
 func (d *DNSProvider) waitForChanges(operation string, resp *vinyldns.RecordSetUpdateResponse) error {
-	return wait.For("vinyldns", d.config.PropagationTimeout, d.config.PollingInterval,
+	return wait.For(context.TODO(), "vinyldns", d.config.PropagationTimeout, d.config.PollingInterval,
 		func() (bool, error) {
 			change, err := d.client.RecordSetChange(resp.Zone.ID, resp.RecordSet.ID, resp.ChangeID)
 			if err != nil {
@@ -282,7 +283,7 @@ func (d *DNSProvider) waitForChanges(operation string, resp *vinyldns.RecordSetU
 
 // splitDomain splits the hostname from the authoritative zone, and returns both parts.
 func splitDomain(fqdn string) (string, string, error) {
-	zone, err := dns01.FindZoneByFqdn(fqdn)
+	zone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return "", "", err
 	}

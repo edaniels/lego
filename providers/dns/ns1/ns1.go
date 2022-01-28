@@ -2,6 +2,7 @@
 package ns1
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -85,7 +86,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 
 // Present creates a TXT record to fulfill the dns-01 challenge.
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
-	fqdn, value := dns01.GetRecord(domain, keyAuth)
+	fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	zone, err := d.getHostedZone(fqdn)
 	if err != nil {
@@ -129,7 +130,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 // CleanUp removes the TXT record matching the specified parameters.
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
-	fqdn, _ := dns01.GetRecord(domain, keyAuth)
+	fqdn, _ := dns01.GetRecord(context.TODO(), domain, keyAuth)
 
 	zone, err := d.getHostedZone(fqdn)
 	if err != nil {
@@ -165,7 +166,7 @@ func (d *DNSProvider) getHostedZone(fqdn string) (*dns.Zone, error) {
 }
 
 func getAuthZone(fqdn string) (string, error) {
-	authZone, err := dns01.FindZoneByFqdn(fqdn)
+	authZone, err := dns01.FindZoneByFqdn(context.TODO(), fqdn)
 	if err != nil {
 		return "", err
 	}

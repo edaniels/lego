@@ -2,6 +2,7 @@
 package exec
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -79,7 +80,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	if d.config.Mode == "RAW" {
 		args = []string{"present", "--", domain, token, keyAuth}
 	} else {
-		fqdn, value := dns01.GetRecord(domain, keyAuth)
+		fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 		args = []string{"present", fqdn, value}
 	}
 
@@ -99,7 +100,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	if d.config.Mode == "RAW" {
 		args = []string{"cleanup", "--", domain, token, keyAuth}
 	} else {
-		fqdn, value := dns01.GetRecord(domain, keyAuth)
+		fqdn, value := dns01.GetRecord(context.TODO(), domain, keyAuth)
 		args = []string{"cleanup", fqdn, value}
 	}
 

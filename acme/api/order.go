@@ -13,6 +13,11 @@ type OrderService service
 type NewRequest struct {
 	Domains []string
 
+	// notBefore (optional, string):
+	// The requested value of the notBefore field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotBefore string
+
 	// notAfter (optional, string):
 	// The requested value of the notAfter field in the certificate,
 	// in the date format defined in [RFC3339].
@@ -27,6 +32,7 @@ func (o *OrderService) New(ctx context.Context, request NewRequest) (acme.Extend
 	}
 
 	orderReq := acme.Order{Identifiers: identifiers}
+	orderReq.NotBefore = request.NotBefore
 	orderReq.NotAfter = request.NotAfter // defaults to CA's choice
 
 	var order acme.Order

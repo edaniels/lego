@@ -62,6 +62,11 @@ type ObtainRequest struct {
 	PreferredChain                 string
 	AlwaysDeactivateAuthorizations bool
 
+	// notBefore (optional, string):
+	// The requested value of the notBefore field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotBefore string
+
 	// notAfter (optional, string):
 	// The requested value of the notAfter field in the certificate,
 	// in the date format defined in [RFC3339].
@@ -79,6 +84,11 @@ type ObtainForCSRRequest struct {
 	Bundle                         bool
 	PreferredChain                 string
 	AlwaysDeactivateAuthorizations bool
+
+	// notBefore (optional, string):
+	// The requested value of the notBefore field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotBefore string
 
 	// notAfter (optional, string):
 	// The requested value of the notAfter field in the certificate,
@@ -129,8 +139,9 @@ func (c *Certifier) Obtain(ctx context.Context, request ObtainRequest) (*Resourc
 	}
 
 	order, err := c.core.Orders.New(ctx, api.NewRequest{
-		Domains:  domains,
-		NotAfter: request.NotAfter,
+		Domains:   domains,
+		NotBefore: request.NotBefore,
+		NotAfter:  request.NotAfter,
 	})
 	if err != nil {
 		return nil, err
@@ -406,6 +417,11 @@ func (c *Certifier) RevokeWithReason(ctx context.Context, cert []byte, reason *u
 }
 
 type RenewRequest struct {
+	// notBefore (optional, string):
+	// The requested value of the notBefore field in the certificate,
+	// in the date format defined in [RFC3339].
+	NotBefore string
+
 	// notAfter (optional, string):
 	// The requested value of the notAfter field in the certificate,
 	// in the date format defined in [RFC3339].
@@ -459,6 +475,7 @@ func (c *Certifier) Renew(
 			CSR:            csr,
 			Bundle:         bundle,
 			PreferredChain: preferredChain,
+			NotBefore:      request.NotBefore,
 			NotAfter:       request.NotAfter,
 		})
 	}
@@ -477,6 +494,7 @@ func (c *Certifier) Renew(
 		PrivateKey:     privateKey,
 		MustStaple:     mustStaple,
 		PreferredChain: preferredChain,
+		NotBefore:      request.NotBefore,
 		NotAfter:       request.NotAfter,
 	}
 	return c.Obtain(ctx, query)

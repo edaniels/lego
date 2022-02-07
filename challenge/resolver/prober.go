@@ -61,7 +61,7 @@ func (p *Prober) Solve(ctx context.Context, authorizations []acme.Authorization)
 		domain := challenge.GetTargetedDomain(authz)
 		if authz.Status == acme.StatusValid {
 			// Boulder might recycle recent validated authz (see issue #267)
-			log.Infof("[%s] acme: authorization already valid; skipping challenge", domain)
+			p.solverManager.core.Logger.Infof("[%s] acme: authorization already valid; skipping challenge", domain)
 			continue
 		}
 

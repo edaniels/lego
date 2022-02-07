@@ -16,7 +16,6 @@ import (
 	"github.com/go-acme/lego/v4/acme/api/internal/nonces"
 	"github.com/go-acme/lego/v4/acme/api/internal/secure"
 	"github.com/go-acme/lego/v4/acme/api/internal/sender"
-	"github.com/go-acme/lego/v4/log"
 )
 
 // Core ACME/LE core API.
@@ -103,7 +102,7 @@ func (a *Core) retrievablePost(ctx context.Context, uri string, content []byte, 
 	}
 
 	notify := func(err error, duration time.Duration) {
-		log.Infof("retry due to: %v", err)
+		a.Logger.Infof("retry due to: %v", err)
 	}
 
 	err := backoff.RetryNotify(operation, bo, notify)

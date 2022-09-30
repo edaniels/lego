@@ -275,7 +275,7 @@ func (d *DNSProvider) applyChanges(zone string, change *dns.Change) error {
 		}
 
 		return false, fmt.Errorf("status: %s", chg.Status)
-	}, golog.Global)
+	}, golog.Global())
 }
 
 // CleanUp removes the TXT record matching the specified parameters.

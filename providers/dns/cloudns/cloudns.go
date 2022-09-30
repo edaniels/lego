@@ -165,5 +165,5 @@ func (d *DNSProvider) waitNameservers(domain string, zone *internal.Zone) error 
 		log.Infof("[%s] Sync %d/%d complete", domain, syncProgress.Updated, syncProgress.Total)
 
 		return syncProgress.Complete, nil
-	}, golog.Global)
+	}, golog.Global())
 }

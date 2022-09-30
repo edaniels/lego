@@ -277,7 +277,7 @@ func (d *DNSProvider) waitForChanges(operation string, resp *vinyldns.RecordSetU
 			return false, fmt.Errorf("waiting operation: %s, zoneID: %s, recordsetID: %s, changeID: %s",
 				operation, resp.Zone.ID, resp.RecordSet.ID, resp.ChangeID)
 		},
-		golog.Global,
+		golog.Global(),
 	)
 }
 

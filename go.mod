@@ -20,7 +20,7 @@ require (
 	github.com/cloudflare/cloudflare-go v0.20.0
 	github.com/cpu/goacmedns v0.1.1
 	github.com/dnsimple/dnsimple-go v0.70.1
-	github.com/edaniels/golog v0.0.0-20210326173913-16d408aa7a5e
+	github.com/edaniels/golog v0.0.0-20220930140416-6e52e83a97fc
 	github.com/exoscale/egoscale v0.67.0
 	github.com/google/go-querystring v1.1.0
 	github.com/gophercloud/gophercloud v0.16.0
@@ -48,14 +48,14 @@ require (
 	github.com/sacloud/libsacloud v1.36.2
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.7.0.20210127161313-bd30bebeac4f
 	github.com/softlayer/softlayer-go v1.0.3
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.287
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.287
 	github.com/transip/gotransip/v6 v6.6.1
 	github.com/urfave/cli v1.22.5
 	github.com/vinyldns/go-vinyldns v0.9.16
 	github.com/vultr/govultr/v2 v2.7.1
-	go.uber.org/multierr v1.5.0
+	go.uber.org/multierr v1.6.0
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d

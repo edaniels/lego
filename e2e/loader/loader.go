@@ -153,7 +153,7 @@ func pebbleHealthCheck(options *CmdOption) {
 		}
 
 		return true, nil
-	}, golog.Global)
+	}, golog.Global())
 	if err != nil {
 		panic(err)
 	}

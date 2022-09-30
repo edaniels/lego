@@ -28,7 +28,7 @@ func NewClient(cancelCtx context.Context, config *Config) (*Client, error) {
 		return nil, errors.New("a configuration must be provided")
 	}
 	if config.Logger == nil {
-		config.Logger = golog.Global
+		config.Logger = golog.Global()
 	}
 
 	_, err := url.Parse(config.CADirURL)

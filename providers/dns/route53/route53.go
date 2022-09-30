@@ -230,7 +230,7 @@ func (d *DNSProvider) changeRecord(action, hostedZoneID string, recordSet *route
 			return true, nil
 		}
 		return false, fmt.Errorf("unable to retrieve change: ID=%s", aws.StringValue(changeID))
-	}, golog.Global)
+	}, golog.Global())
 }
 
 func (d *DNSProvider) getExistingRecordSets(hostedZoneID, fqdn string) ([]*route53.ResourceRecord, error) {

@@ -172,5 +172,5 @@ func (d *DNSProvider) changeRecord(action, fqdn, value string, ttl int) error {
 			return false, fmt.Errorf("failed to query change status: %w", err)
 		}
 		return resp.ChangeInfo.Status == "INSYNC", nil
-	}, golog.Global)
+	}, golog.Global())
 }
